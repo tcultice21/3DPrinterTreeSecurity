@@ -640,7 +640,6 @@
     <Folder Include="src\ASCON" />
     <Folder Include="src\SHA512" />
     <Folder Include="src\Random" />
-    <Folder Include="src\Present" />
     <Folder Include="src\Photon" />
   </ItemGroup>
   <ItemGroup>
@@ -1308,12 +1307,6 @@
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\Photon\photon.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\Present\present.c">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\Present\present.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\qs_can_basic.c">

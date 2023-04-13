@@ -103,7 +103,6 @@ SUBDIRS :=  \
 ../src/ASCON \
 ../src/SHA512 \
 ../src/Random \
-../src/Present \
 ../src/Photon
 
 
