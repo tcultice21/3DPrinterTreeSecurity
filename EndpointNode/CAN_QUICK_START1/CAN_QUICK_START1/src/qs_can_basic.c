@@ -76,6 +76,10 @@ static struct can_module can_instance;
 #define NODE_TOTAL	2
 #define TOTAL_SENDS	10
 
+// TODO: Specify two different buffers; One that comes from local nodes and one that comes from the server
+// Probably means they should use two different IDs? (In other words: idInternal=3, idExternal=4);
+// ?????
+
 static volatile uint32_t g_bErrFlag = 0;
 
 // Signifies that first half of received message has been copied over

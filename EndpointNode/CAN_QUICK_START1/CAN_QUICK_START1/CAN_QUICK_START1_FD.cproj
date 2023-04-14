@@ -643,6 +643,12 @@
     <Folder Include="src\Photon" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\CANLib.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\CANLib.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\SHA512\sha512.c">
       <SubType>compile</SubType>
     </Compile>
