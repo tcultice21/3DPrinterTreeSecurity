@@ -43,6 +43,8 @@
 #include "ASCON/api.h"
 #include "ASCON/ascon.h"
 #include "ASCON/crypto_aead.h"
+#include "ASCON/constants.h"
+#include "CANLib.h"
 
 //! [module_var]
 
@@ -226,7 +228,7 @@ if (STAGE == ENROLLMENT) {
 				}
 					// Received message about type of communication
 				
-				else if (rx_buffer_index == CAN_FILTER_PUBLICKEY) {
+				else if (rx_buffer_index == CAN_FILTER_PUBLICKEY || rx_buffer_index == CAN_FILTER_PUBLICKEY+1) {
 					//printf("%d == %d ? also %d \r\n",rx_buffer_index,CAN_FILTER_PUBLICKEY,g_rec_public);
 					g_rec_public++;
 				} 
@@ -417,27 +419,25 @@ int main(void)
 	printf("Starting.\r\n");
 //! [display_user_menu]
 //volatile ECCRYPTO_STATUS status;
-uint8_t secret_key[32];
-uint8_t public_key[32];
-uint8_t shared_secret[32];
+//selfInfo selfData = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+uint8_t cryptoBuff[64];
 uint8_t ServerPublicKey[32];
 uint8_t response[16];
 uint8_t ec[16];
-uint8_t initData[24];
-uint8_t * session_key = initData;
+//uint8_t initData[24];
+//uint8_t * session_key = initData;
 unsigned long mlen;
 
 //uint8_t message[16];
 uint8_t message_in[24];
 uint8_t message_out[24];
 uint8_t response_hash[16];
-uint8_t shared_hash[16];
 uint8_t encrypted_response_hash[32];
 uint8_t server_reply[32];
 ECCRYPTO_STATUS Status;
 
 //printf("Time for enrollment\r\n");
-bool hardcoded = (bool)Enrollment(NODE_ID, secret_key, ServerPublicKey, ec,&can_instance);
+bool hardcoded = (bool)Enrollment(NODE_ID, selfData.secret_key, ServerPublicKey, ec,&can_instance);
 
 printf("Enrollment complete time: %d\r\n",TIMEVAL-startVal);
 
@@ -452,8 +452,8 @@ while(1) {
 	//printf("Trying to test this THANG...\r\n");
 	
 	// Generate the node's response and keys
-	// InitKeys(hardcoded,response,secret_key,public_key);
-	memset(secret_key+16,0,16);
+	//InitKeys(hardcoded,response,secret_key,public_key);
+	memset(selfData.secret_key+16,0,16);
 	
 	if(hardcoded) {
 		//printf("Hardcoding Response\r\n");
@@ -469,7 +469,7 @@ while(1) {
 		}
 	}
 	uint32_t tempVal = TIMEVAL;
-	memmove(secret_key,response,16);
+	memmove(selfData.secret_key,response,16);
 	
 	// Hash the response to send to the server
 	// secret_key's lowest 16 bytes contain the PUF's response
@@ -493,7 +493,7 @@ while(1) {
 	//	printf("%02x",secret_key[j]);
 	//}
 	//printf("\r\n");
-	Status = CompressedKeyGeneration(secret_key,public_key);
+	Status = CompressedKeyGeneration(selfData.secret_key,selfData.public_key);
 	if (Status != ECCRYPTO_SUCCESS) {
 		printf("Failed Public Key Generation\r\n");
 		return Status;
@@ -507,28 +507,29 @@ while(1) {
 	
 	
 	// Generate Shared secret
-	Status = CompressedSecretAgreement(secret_key,ServerPublicKey,shared_secret);
+	Status = CompressedSecretAgreement(selfData.secret_key,ServerPublicKey,selfData.shared_secret);
 	if (Status != ECCRYPTO_SUCCESS) {
 		printf("Failed Shared Secret Creation\r\n");
 		return Status;
 	}
 	
+	
 	if (DEBUGCODE) {
 		printf("Shared Secret: 0x");
-		for (int i = 0; i < sizeof(shared_secret); i++) {
-			printf("%02x",shared_secret[i]);
+		for (int i = 0; i < sizeof(selfData.shared_secret); i++) {
+			printf("%02x",selfData.shared_secret[i]);
 		}
 		printf("\r\n");
 		
 		printf("Public Key: 0x");
-		for (int i = 0; i < sizeof(public_key); i++) {
-			printf("%02x",public_key[i]);
+		for (int i = 0; i < sizeof(selfData.public_key); i++) {
+			printf("%02x",selfData.public_key[i]);
 		}
 		printf("\r\n");
 		
 		printf("Public Key: 0x");
-		for (int i = 0; i < sizeof(public_key); i++) {
-			printf("%02x",public_key[i]);
+		for (int i = 0; i < sizeof(selfData.public_key); i++) {
+			printf("%02x",selfData.public_key[i]);
 		}
 		printf("\r\n");
 	}
@@ -537,34 +538,38 @@ while(1) {
 	struct can_tx_element tx_element;
 	
 	// Receive
-	can_get_standard_message_filter_element_default(&sd_filter);
+	CAN_Rx_FIFO(0x0,0x0,CAN_FILTER_WAIT,&can_instance);
+	
+	/*can_get_standard_message_filter_element_default(&sd_filter);
 	sd_filter.S0.bit.SFID1 = 0x0;
 	sd_filter.S0.bit.SFID2 = 0x0;
 
 	can_set_rx_standard_filter(&can_instance, &sd_filter,
 		CAN_FILTER_WAIT);
-	can_enable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);
+	can_enable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);*/
 	
 	// Enable monitoring
-	can_get_standard_message_filter_element_default(&sd_filter);
+	CAN_Rx(0x301,CAN_FILTER_MONITOR,&can
+	_instance);
+	/*can_get_standard_message_filter_element_default(&sd_filter);
 	sd_filter.S0.bit.SFID1 = 0x301;
 	sd_filter.S0.bit.SFID2 = CAN_FILTER_MONITOR;
 	sd_filter.S0.bit.SFEC =
 	CAN_STANDARD_MESSAGE_FILTER_ELEMENT_S0_SFEC_STRXBUF_Val;
 	can_set_rx_standard_filter(&can_instance, &sd_filter,
 	CAN_FILTER_MONITOR);
-	can_enable_interrupt(&can_instance, CAN_RX_BUFFER_NEW_MESSAGE);
+	can_enable_interrupt(&can_instance, CAN_RX_BUFFER_NEW_MESSAGE);*/
 	
 	// Hash 32-byte shared secret to 128 bits then truncate to 10 bytes
 	// Only first 10 bytes of shared_hash will be used
-	photon128(shared_secret,32,shared_hash);
+	photon128(selfData.shared_secret,32,selfData.shared_hash);
 	
 	// Encrypt the two halves of the response_hash (8 bytes at a time)
 	// The first 10 bytes of shared_hash is the key
 	//memmove(encrypted_response_hash,response_hash,16);
 	unsigned long clen = 16;
 	printf("Hash Encrypt: Input to tx_element size: %04x\r\n",clen);
-	crypto_aead_encrypt(encrypted_response_hash, &clen, response_hash, 16, NULL, NULL, NULL, n, shared_hash);
+	crypto_aead_encrypt(encrypted_response_hash, &clen, response_hash, 16, NULL, NULL, NULL, selfData.nonce, selfData.shared_hash);
 	printf("Hash Encrypt: Output to tx_element size: %04x\r\n",clen);
 	//present80Encrypt(shared_hash,encrypted_response_hash);
 	//present80Encrypt(shared_hash,&encrypted_response_hash[8]);
@@ -597,20 +602,21 @@ while(1) {
 	//	CAN_FILTER_WAIT);
 	//can_disable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);
 	printf("My Turn!\r\n");
-	
 	// Send to the server
 	// Set to send CAN0 msg 1;
 	//Delay_ms(50);
-	can_get_tx_buffer_element_defaults(&tx_element);
+	CAN_Tx(0x100+NODE_ID,encrypted_response_hash,24,CAN_FILTER_MONITOR,&can_instance);
+	/*can_get_tx_buffer_element_defaults(&tx_element);
 	tx_element.T0.reg |= CAN_TX_ELEMENT_T0_STANDARD_ID(0x100+NODE_ID);
 	tx_element.T1.reg = CAN_TX_ELEMENT_T1_FDF | CAN_TX_ELEMENT_T1_BRS |
 		CAN_TX_ELEMENT_T1_DLC(CAN_TX_ELEMENT_T1_DLC_DATA16_Val);
 	memcpy(tx_element.data,encrypted_response_hash,16);
 	can_set_tx_buffer_element(&can_instance, &tx_element,
 		CAN_TX_FILTER_BUFFER_INDEX);
-	can_tx_transfer_request(&can_instance, 1 << CAN_TX_FILTER_BUFFER_INDEX);
+	can_tx_transfer_request(&can_instance, 1 << CAN_TX_FILTER_BUFFER_INDEX);*/
 	
-	while(!(can_tx_get_transmission_status(&can_instance) & (1 << CAN_TX_FILTER_BUFFER_INDEX)));
+	CAN_Tx_Wait(CAN_FILTER_MONITOR,&can_instance);
+	//while(!(can_tx_get_transmission_status(&can_instance) & (1 << CAN_TX_FILTER_BUFFER_INDEX)));
 	//printf("First and Second message sent!\r\n");
 	//Potentially needed: Delay_ms(50);
 	
@@ -638,21 +644,23 @@ while(1) {
 	//	CAN_FILTER_WAIT);
 	//can_enable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);
 	
-	can_get_standard_message_filter_element_default(&sd_filter);
+	CAN_Rx(0x200+NODE_ID,CAN_FILTER_MSG2,&can_instance);
+	/*can_get_standard_message_filter_element_default(&sd_filter);
 	sd_filter.S0.bit.SFID1 = 0x200 + NODE_ID;
 	sd_filter.S0.bit.SFID2 = CAN_FILTER_MSG2;
 	sd_filter.S0.bit.SFEC =
 	CAN_STANDARD_MESSAGE_FILTER_ELEMENT_S0_SFEC_STRXBUF_Val;
 	can_set_rx_standard_filter(&can_instance, &sd_filter,
-		CAN_FILTER_MSG2);
+		CAN_FILTER_MSG2);*/
 	//printf("Waiting for others\r\n");
 	while(g_waitFlag < (NODE_TOTAL));
 	
 	printf("After \"Waiting for others\"\r\n");
-	sd_filter.S0.bit.SFEC =
+	CAN_Rx_Disable(CAN_FILTER_WAIT,&can_instance);
+	/*sd_filter.S0.bit.SFEC =
 		CAN_STANDARD_MESSAGE_FILTER_ELEMENT_S0_SFEC_DISABLE_Val;
 	can_set_rx_standard_filter(&can_instance, &sd_filter,
-		CAN_FILTER_WAIT);
+		CAN_FILTER_WAIT);*/
 	//printf("All nodes finished sending hashed responses\r\n");
 	
 	// Set CAN0 message to receive.
@@ -681,12 +689,12 @@ while(1) {
 	//for(int i=0;i<16;i++){printf("%02x ",server_reply[i]);}
 	//printf("\r\n");
 	
-	crypto_aead_decrypt(initData, &mlen, (void*)0, server_reply, 24, NULL, NULL, n, shared_hash);
+	crypto_aead_decrypt(cryptoBuff, &mlen, (void*)0, server_reply, 24, NULL, NULL, selfData.nonce, selfData.shared_hash);
 	printf("Session key Decrypt: Output to message_in size: %i\r\n",mlen);
-	//memcpy(n,&initData[24],8);
+	memcpy(selfData.session_key,cryptoBuff,sizeof(selfData.session_key));
 	printf("SessionKey:");
 	for(int i = 0; i < 16; i++) {
-		printf("%x ",session_key[i]);
+		printf("%x ",selfData.session_key[i]);
 	}
 	printf("\r\n");
 	//present80Decrypt(shared_hash,server_reply);
@@ -698,29 +706,31 @@ while(1) {
 	//printf("Sessions key is: 0x");
 	//for(int i=9;i>=0;i--){printf("%02x",session_key[i]);}
 	// Receive on 1
-	can_get_standard_message_filter_element_default(&sd_filter);
+	CAN_Rx_FIFO(0x400+NODE_ID,0x7F0,CAN_RX_STANDARD_FILTER_INDEX_1,&can_instance);
+	/*can_get_standard_message_filter_element_default(&sd_filter);
 	sd_filter.S0.bit.SFID1 = 0x400 + NODE_ID;
 	sd_filter.S0.bit.SFID2 = 0x7F0;
 
 	can_set_rx_standard_filter(&can_instance, &sd_filter,
 	CAN_RX_STANDARD_FILTER_INDEX_1);
-	can_enable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);
+	can_enable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);*/
 	
 	// Set up for normal communication with other ECUs
 	while(g_normalFlag == 0);
 	STAGE = NORMAL;
 	
-	sd_filter.S0.bit.SFEC =
+	CAN_Rx_Disable(CAN_FILTER_MSG2,&can_instance);
+	/*sd_filter.S0.bit.SFEC =
 		CAN_STANDARD_MESSAGE_FILTER_ELEMENT_S0_SFEC_DISABLE_Val;
 	can_set_rx_standard_filter(&can_instance, &sd_filter,
-		CAN_FILTER_MSG2);
+		CAN_FILTER_MSG2);*/
 	//printf("\r\nNormal Operation Time\r\n");
 	
 	// Send on 2
-	can_get_tx_buffer_element_defaults(&tx_element);
+	/*can_get_tx_buffer_element_defaults(&tx_element);
 	tx_element.T0.reg |= CAN_TX_ELEMENT_T0_STANDARD_ID(0x400+NODE_ID);
 	tx_element.T1.reg = CAN_TX_ELEMENT_T1_FDF | CAN_TX_ELEMENT_T1_BRS |
-		CAN_TX_ELEMENT_T1_DLC(CAN_TX_ELEMENT_T1_DLC_DATA24_Val);
+		CAN_TX_ELEMENT_T1_DLC(CAN_TX_ELEMENT_T1_DLC_DATA24_Val);*/
 	memset(message_out,0,16);
 	//Delay_ms(10);
 	//memcpy(tx_element.data,&encrypted_response_hash[8],8);
@@ -737,13 +747,13 @@ while(1) {
 	if (NODE_ID == 1) {
 		//present80Encrypt(session_key,message_out);
 		//printf("Raw Send: 0x%08x.%08x\r\n",*((uint32_t *)&message_out[4]),*((uint32_t *)message_out));
-		crypto_aead_encrypt(tx_element.data, &clen, message_out, 16, NULL, NULL, NULL, n, session_key);
+		crypto_aead_encrypt(cryptoBuff, &clen, message_out, 16, NULL, NULL, NULL, selfData.nonce, selfData.session_key);
 		//printf("Encrypt as Node 1: Output to tx_element size: %i\r\n",clen);
-		
+		CAN_Tx(0x400+NODE_ID,cryptoBuff,24,CAN_TX_FILTER_BUFFER_INDEX,&can_instance);
 		//memcpy(tx_element.data,message_out,24);
-		can_set_tx_buffer_element(&can_instance, &tx_element,
+		/*can_set_tx_buffer_element(&can_instance, &tx_element,
 			CAN_TX_FILTER_BUFFER_INDEX);
-		can_tx_transfer_request(&can_instance, 1 << CAN_TX_FILTER_BUFFER_INDEX);
+		can_tx_transfer_request(&can_instance, 1 << CAN_TX_FILTER_BUFFER_INDEX);*/
 		g_sent = 1;
 		g_waitFlag++;
 		//Delay_ms(20);
@@ -754,9 +764,11 @@ while(1) {
 	volatile uint32_t timeOut = TIMEVAL;
 	for (int i = 0; i < TOTAL_SENDS; i++) {
 		while(g_sent != 0) {
-			if ((can_tx_get_transmission_status(&can_instance) & (1 << CAN_TX_FILTER_BUFFER_INDEX))) {
+			CAN_Tx_Wait(CAN_TX_FILTER_BUFFER_INDEX,&can_instance);
+			g_sent = 0;
+			/*if ((can_tx_get_transmission_status(&can_instance) & (1 << CAN_TX_FILTER_BUFFER_INDEX))) {
 				g_sent = 0;
-			}
+			}*/
 		}
 		
 		//while(!(can_tx_get_transmission_status(can_inst) & (1 << CAN_TX_FILTER_BUFFER_INDEX)));
@@ -766,7 +778,7 @@ while(1) {
 		//memcpy(message_in,rx_element_fifo_0.data,24);
 		//present80Decrypt(session_key,message_in);
 		//printf("Raw Receive: 0x%08x.%08x\r\n",*((uint32_t *)&rx_element_fifo_0.data[4]),*((uint32_t *)rx_element_fifo_0.data));
-		crypto_aead_decrypt(message_in, &mlen, (void*)0, rx_element_fifo_0.data, 24, NULL, NULL, n, session_key);
+		crypto_aead_decrypt(message_in, &mlen, (void*)0, rx_element_fifo_0.data, 24, NULL, NULL, selfData.nonce, selfData.session_key);
 		//printf("Decrypt: Output to message_in size: %i\r\n",mlen);
 		printf("Received: 0x%08x.%08x\r\n",*((uint32_t *)&message_in[4]),*((uint32_t *)message_in));
 		*((uint32_t *)message_in) += 1;
@@ -778,16 +790,17 @@ while(1) {
 			timeOut = TIMEVAL;	
 			//printf("TIMEVALLLLLLLLLLLLLLLLLLL: %i\r\n",TIMEVAL);
 			//printf("Raw Send: 0x%08x.%08x\r\n",*((uint32_t *)&message_out[4]),*((uint32_t *)message_out));
-			crypto_aead_encrypt(tx_element.data, &clen, message_out, 16, NULL, NULL, NULL, n, session_key);
+			crypto_aead_encrypt(cryptoBuff, &clen, message_out, 16, NULL, NULL, NULL, selfData.nonce, selfData.session_key);
 			//printf("Encrypt: Output to tx_element size: %i\r\n",clen);
 			//memcpy(tx_element.data,message_out,8);
-			can_set_tx_buffer_element(&can_instance, &tx_element,
+			CAN_Tx(0x400+NODE_ID,cryptoBuff,24,CAN_TX_FILTER_BUFFER_INDEX,&can_instance);
+			/*can_set_tx_buffer_element(&can_instance, &tx_element,
 				CAN_TX_FILTER_BUFFER_INDEX);
-			can_tx_transfer_request(&can_instance, 1 << CAN_TX_FILTER_BUFFER_INDEX);
-			while(!(can_tx_get_transmission_status(&can_instance) & (1 << CAN_TX_FILTER_BUFFER_INDEX)));
+			can_tx_transfer_request(&can_instance, 1 << CAN_TX_FILTER_BUFFER_INDEX);*/
+			CAN_Tx_Wait(CAN_TX_FILTER_BUFFER_INDEX,&can_instance);
 			g_sent = 0;
 			g_waitFlag++;
-			printf("///////////////\r\nTime to send: %d\r\n",TIMEVAL-timeOut);
+			printf("///////////////\r\nTime to send: %il\r\n",TIMEVAL-timeOut);
 			//Delay_ms(5);
 		}
 	}

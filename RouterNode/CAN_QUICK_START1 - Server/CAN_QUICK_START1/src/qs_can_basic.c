@@ -525,8 +525,12 @@ int main(void)
 			printf("Decrypt: Output to message_in size: %i\r\n",mlen);
 			//present80Decrypt(NodeSharedSecrets[i],ReceivedResponseHashes[i]);
 			//present80Decrypt(NodeSharedSecrets[i],&ReceivedResponseHashes[i][8]);
+			printf("\r\NodeSharedKey = 0x");
+			for(int j = 0; j < 16; j++) {
+				printf("%02x",NodeSharedSecrets[i][j]);
+			}
 			
-			/*printf("\r\nReceived = 0x");
+			printf("\r\nReceived = 0x");
 			for(int j = 15; j>=0; j--) {
 				printf("%02x",ReceivedResponseHashes[i][j]);
 			}
@@ -535,7 +539,7 @@ int main(void)
 				printf("%02x",StoredResponseHashes[i][j]);
 			}
 			printf("\r\n");
-			*/
+			
 			
 			// Make sure received hash matches stored hash
 			int j;

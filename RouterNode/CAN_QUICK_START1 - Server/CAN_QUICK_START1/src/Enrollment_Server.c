@@ -80,7 +80,7 @@ bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
 	while(!(can_tx_get_transmission_status(can_inst) & (1 << CAN_FILTER_REGULAR_SEND)));
 	
 	if(hardcoded) {
-		//printf("Hardcoding a response\r\n");
+		printf("Hardcoding a response\r\n");
 		memset(StoredPublicKeys[0],0xFF,16);
 	}
 	else {
@@ -154,6 +154,7 @@ bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
 		while(!(can_tx_get_transmission_status(can_inst) & (1 << CAN_FILTER_REGULAR_SEND)));
 		
 		while(g_received == 0);
+		printf("Received data.\n\r");
 		g_received = 0;
 		memcpy(&response[0],getNextBufferElement(&rx_element_buff[CAN_FILTER_REGULAR_REC])->data,16);
 		/*
@@ -167,6 +168,7 @@ bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
 		g_received = 0;
 		
 		memcpy(&response[8],getNextBufferElement(&rx_element_buff[CAN_FILTER_REGULAR_REC])->data,8);
+		
 		printf("Received Response: ");
 		for(int j = 0; j < 16; j++) {
 			printf("%02x",response[j]);
@@ -183,13 +185,13 @@ bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
 			while(1);
 		}
 		else {
-			//printf("Generated Node %i Key: 0x",i);
-			//for (int j = 0; j < 16; j++) {
-			//	printf("%02x",StoredPublicKeys[i][j]);
-			//}
-			//printf("\r\n");
+			/*printf("Generated Node %i Key: 0x",i);
+			for (int j = 0; j < 16; j++) {
+				printf("%02x",StoredPublicKeys[i][j]);
+			}
+			printf("\r\n");*/
 		}
-		//printf("Completed node %i enrollment\r\n",i);
+		printf("Completed node %i enrollment\r\n",i);
 	}
 	
 	// We're finished listening

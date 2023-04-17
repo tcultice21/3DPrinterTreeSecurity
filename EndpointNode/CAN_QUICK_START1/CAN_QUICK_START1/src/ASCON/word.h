@@ -42,7 +42,7 @@ forceinline uint64_t CLEAR(uint64_t w, int n) {
 
 forceinline uint64_t MASK(int n) {
   /* undefined for n == 0 */
-  return ~0ull >> (64 - 8 * n);
+  return ~(uint64_t)0 >> (64 - 8 * n);
 }
 
 forceinline uint64_t LOAD(const uint8_t* bytes, int n) {

@@ -9,18 +9,13 @@
 #ifndef CANLIB_H_
 #define CANLIB_H_
 
-typedef address uint16_t;
-
-// Probably not mine?
-typedef struct location {
-	address outAddr;
-	multiBuffer * recBuff;
-	
-	int inCounter;
-	int outCounter;
-	
-	
-};
+#include <stdlib.h>
+#include <stdint.h>
+#include <conf_can.h>
+#include <string.h>
+#include <asf.h>
+#include <stdbool.h>
+#define MAX_BUFFS 4
 
 // TODO: Make a union that provides the metadata needed to properly sort/identify the packet style, etc.
 
@@ -33,10 +28,17 @@ struct multiBuffer {
 
 extern struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
 
+// Rx Functions
 uint8_t CAN_Rx_Disable(int bufferNum, struct can_module * can_inst);
 uint8_t * CAN_Rx(uint16_t idVal, int bufferNum, struct can_module * can_inst);
+uint8_t *CAN_Rx_FIFO(uint16_t idVal, uint16_t maskVal, uint16_t filterVal, struct can_module * can_inst);
 
-inline void CAN_Tx_Wait(int buffer, struct can_module * can_inst) {
+// Tx Functions
+int CAN_Tx_Raw(uint16_t idVal, struct can_tx_element * tx_element, uint32_t dataLen, int buffer, struct can_module * can_inst);
+//int CAN_Tx_Raw(uint16_t idVal, struct can_tx_element tx_element, uint32_t dataLen, int buffer, struct can_module * can_inst);
+int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct can_module * can_inst);
+
+inline static void CAN_Tx_Wait(int buffer, struct can_module * can_inst) {
 	while(!(can_tx_get_transmission_status(can_inst) & (1 << buffer)));
 }
 

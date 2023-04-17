@@ -18,6 +18,7 @@
 #include "ASCON/api.h"
 #include "ASCON/ascon.h"
 #include "ASCON/crypto_aead.h"
+#include "ASCON/constants.h"
 #include "CANLib.h"
 
 #define CAN_FILTER_ENROLLMENT 3
@@ -33,9 +34,13 @@ enum OPERATION {
 
 typedef struct selfInfo {
 	int idIn; // Assigned ID value to input receive on
+	uint8_t secret_key[32];
+	uint8_t public_key[32];
+	uint8_t shared_secret[32];
+	uint8_t shared_hash[16];
 	uint8_t session_key[ASCON_128_KEYBYTES];
 	volatile uint8_t nonce[CRYPTO_NPUBBYTES];
-};
+} selfInfo;
 
 extern struct selfInfo selfData;
 
