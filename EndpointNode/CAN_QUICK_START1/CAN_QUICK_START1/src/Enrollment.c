@@ -6,6 +6,8 @@
  */ 
 
 #include "Enrollment.h"
+#include "EncLib.h"
+
 uint32_t startVal;
 volatile uint32_t ul_tickcount = 0;
 
@@ -18,7 +20,7 @@ volatile uint32_t g_rec_public = 0;
 //volatile unsigned char n[CRYPTO_NPUBBYTES] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 
 // Important information about node's self
-struct selfInfo selfData = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+//struct selfInfo selfData = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
 
 
 volatile enum OPERATION STAGE = ENROLLMENT;

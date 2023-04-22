@@ -90,7 +90,7 @@ int CAN_Tx_Raw(uint16_t idVal, struct can_tx_element * tx_element, uint32_t data
 		buffer);
 	can_tx_transfer_request(can_inst, 1 << buffer);
 	//can_enable_interrupt(can_inst, CAN_TX_EVENT_FIFO_NEW_ENTRY);
-	return 0;
+	return map[num_to_CAN(dataLen)];
 }
 
 int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct can_module * can_inst) {
@@ -102,7 +102,7 @@ int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct c
 	
 	memset(tx_element.data,0,64);
 	memcpy(tx_element.data,data,dataLen);
-	CAN_Tx_Raw(idVal,&tx_element,dataLen,buffer,can_inst);
+	return CAN_Tx_Raw(idVal,&tx_element,dataLen,buffer,can_inst);
 	
 	/*can_get_tx_buffer_element_defaults(&tx_element);
 	tx_element.T0.reg |= CAN_TX_ELEMENT_T0_STANDARD_ID(idVal);
@@ -118,5 +118,4 @@ int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct c
 	can_tx_transfer_request(can_inst, 1 << buffer);
 	while(!(can_tx_get_transmission_status(can_inst) & (1 << buffer)));
 	can_enable_interrupt(can_inst, CAN_TX_EVENT_FIFO_NEW_ENTRY);*/
-	return 1;
 }

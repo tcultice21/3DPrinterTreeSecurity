@@ -37,14 +37,15 @@
 #include <string.h>
 #include <conf_can.h>
 #include "FourQ/FourQ_api.h"
-#include "Photon/photon.h"
+//#include "Photon/photon.h"
 #include "Enrollment.h"
 //#include "Present/present.h"
-#include "ASCON/api.h"
-#include "ASCON/ascon.h"
-#include "ASCON/crypto_aead.h"
-#include "ASCON/constants.h"
+//#include "ASCON/api.h"
+//#include "ASCON/ascon.h"
+//#include "ASCON/crypto_aead.h"
+//#include "ASCON/constants.h"
 #include "CANLib.h"
+#include "EncLib.h"
 
 //! [module_var]
 
@@ -549,8 +550,7 @@ while(1) {
 	can_enable_interrupt(&can_instance, CAN_RX_FIFO_0_NEW_MESSAGE);*/
 	
 	// Enable monitoring
-	CAN_Rx(0x301,CAN_FILTER_MONITOR,&can
-	_instance);
+	CAN_Rx(0x301,CAN_FILTER_MONITOR,&can_instance);
 	/*can_get_standard_message_filter_element_default(&sd_filter);
 	sd_filter.S0.bit.SFID1 = 0x301;
 	sd_filter.S0.bit.SFID2 = CAN_FILTER_MONITOR;
@@ -569,7 +569,7 @@ while(1) {
 	//memmove(encrypted_response_hash,response_hash,16);
 	unsigned long clen = 16;
 	printf("Hash Encrypt: Input to tx_element size: %04x\r\n",clen);
-	crypto_aead_encrypt(encrypted_response_hash, &clen, response_hash, 16, NULL, NULL, NULL, selfData.nonce, selfData.shared_hash);
+	crypto_aead_encrypt(encrypted_response_hash, &clen, response_hash, 16, NULL, NULL, NULL, selfData.ASCON_data.nonce, selfData.shared_hash);
 	printf("Hash Encrypt: Output to tx_element size: %04x\r\n",clen);
 	//present80Encrypt(shared_hash,encrypted_response_hash);
 	//present80Encrypt(shared_hash,&encrypted_response_hash[8]);
@@ -689,12 +689,12 @@ while(1) {
 	//for(int i=0;i<16;i++){printf("%02x ",server_reply[i]);}
 	//printf("\r\n");
 	
-	crypto_aead_decrypt(cryptoBuff, &mlen, (void*)0, server_reply, 24, NULL, NULL, selfData.nonce, selfData.shared_hash);
+	crypto_aead_decrypt(cryptoBuff, &mlen, (void*)0, server_reply, 24, NULL, NULL, selfData.ASCON_data.nonce, selfData.shared_hash);
 	printf("Session key Decrypt: Output to message_in size: %i\r\n",mlen);
-	memcpy(selfData.session_key,cryptoBuff,sizeof(selfData.session_key));
+	memcpy(selfData.ASCON_data.session_key,cryptoBuff,sizeof(selfData.ASCON_data.session_key));
 	printf("SessionKey:");
 	for(int i = 0; i < 16; i++) {
-		printf("%x ",selfData.session_key[i]);
+		printf("%x ",selfData.ASCON_data.session_key[i]);
 	}
 	printf("\r\n");
 	//present80Decrypt(shared_hash,server_reply);
@@ -747,7 +747,7 @@ while(1) {
 	if (NODE_ID == 1) {
 		//present80Encrypt(session_key,message_out);
 		//printf("Raw Send: 0x%08x.%08x\r\n",*((uint32_t *)&message_out[4]),*((uint32_t *)message_out));
-		crypto_aead_encrypt(cryptoBuff, &clen, message_out, 16, NULL, NULL, NULL, selfData.nonce, selfData.session_key);
+		crypto_aead_encrypt(cryptoBuff, &clen, message_out, 16, NULL, NULL, NULL, selfData.ASCON_data.nonce, selfData.ASCON_data.session_key);
 		//printf("Encrypt as Node 1: Output to tx_element size: %i\r\n",clen);
 		CAN_Tx(0x400+NODE_ID,cryptoBuff,24,CAN_TX_FILTER_BUFFER_INDEX,&can_instance);
 		//memcpy(tx_element.data,message_out,24);
@@ -778,7 +778,7 @@ while(1) {
 		//memcpy(message_in,rx_element_fifo_0.data,24);
 		//present80Decrypt(session_key,message_in);
 		//printf("Raw Receive: 0x%08x.%08x\r\n",*((uint32_t *)&rx_element_fifo_0.data[4]),*((uint32_t *)rx_element_fifo_0.data));
-		crypto_aead_decrypt(message_in, &mlen, (void*)0, rx_element_fifo_0.data, 24, NULL, NULL, selfData.nonce, selfData.session_key);
+		crypto_aead_decrypt(message_in, &mlen, (void*)0, rx_element_fifo_0.data, 24, NULL, NULL, selfData.ASCON_data.nonce, selfData.ASCON_data.session_key);
 		//printf("Decrypt: Output to message_in size: %i\r\n",mlen);
 		printf("Received: 0x%08x.%08x\r\n",*((uint32_t *)&message_in[4]),*((uint32_t *)message_in));
 		*((uint32_t *)message_in) += 1;
@@ -790,7 +790,7 @@ while(1) {
 			timeOut = TIMEVAL;	
 			//printf("TIMEVALLLLLLLLLLLLLLLLLLL: %i\r\n",TIMEVAL);
 			//printf("Raw Send: 0x%08x.%08x\r\n",*((uint32_t *)&message_out[4]),*((uint32_t *)message_out));
-			crypto_aead_encrypt(cryptoBuff, &clen, message_out, 16, NULL, NULL, NULL, selfData.nonce, selfData.session_key);
+			crypto_aead_encrypt(cryptoBuff, &clen, message_out, 16, NULL, NULL, NULL, selfData.ASCON_data.nonce, selfData.ASCON_data.session_key);
 			//printf("Encrypt: Output to tx_element size: %i\r\n",clen);
 			//memcpy(tx_element.data,message_out,8);
 			CAN_Tx(0x400+NODE_ID,cryptoBuff,24,CAN_TX_FILTER_BUFFER_INDEX,&can_instance);

@@ -17,9 +17,6 @@
 #include <stdbool.h>
 #define MAX_BUFFS 4
 
-// TODO: Make a union that provides the metadata needed to properly sort/identify the packet style, etc.
-
-
 struct multiBuffer {
 	uint8_t last_write;
 	uint8_t last_read;

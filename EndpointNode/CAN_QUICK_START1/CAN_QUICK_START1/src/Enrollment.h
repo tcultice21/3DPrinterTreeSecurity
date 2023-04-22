@@ -32,7 +32,7 @@ enum OPERATION {
 	NORMAL
 };
 
-typedef struct selfInfo {
+/*typedef struct selfInfo {
 	int idIn; // Assigned ID value to input receive on
 	uint8_t secret_key[32];
 	uint8_t public_key[32];
@@ -40,9 +40,9 @@ typedef struct selfInfo {
 	uint8_t shared_hash[16];
 	uint8_t session_key[ASCON_128_KEYBYTES];
 	volatile uint8_t nonce[CRYPTO_NPUBBYTES];
-} selfInfo;
+} selfInfo;*/
 
-extern struct selfInfo selfData;
+//extern struct selfInfo selfData;
 
 // Authentication data/counters
 extern volatile enum OPERATION STAGE;

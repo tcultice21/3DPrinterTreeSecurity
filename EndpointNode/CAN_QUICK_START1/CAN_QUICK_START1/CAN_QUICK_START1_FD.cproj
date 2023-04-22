@@ -662,6 +662,12 @@
     <Compile Include="src\CANLib.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\EncLib.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\EncLib.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\SHA512\sha512.c">
       <SubType>compile</SubType>
     </Compile>
