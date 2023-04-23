@@ -160,7 +160,7 @@ static void configure_can(void)
 }
 //! [can_init_setup]
 
-
+// TODO: completely rehaul the handler + add a Tx handle?
 void CAN0_Handler(void) {
 volatile uint32_t rx_buffer_index;
 volatile uint32_t status = can_read_interrupt_status(&can_instance);
@@ -303,7 +303,7 @@ else {
 }
 
 //! [user_menu]
-static void display_menu(void)
+/*static void display_menu(void)
 {
 	printf("Menu :\r\n"
 			"  -- Select the action:\r\n"
@@ -317,7 +317,7 @@ static void display_menu(void)
 			"  7: Send extended message with ID: 0x10000096 and 8 byte data 128 to 135. \r\n"
 			"  h: Display menu \r\n\r\n");
 }
-//! [user_menu]
+//! [user_menu]*/
 
 bool InitKeys(bool hardcoded, uint8_t * secret_key, uint8_t *ServerPublicKey, uint8_t *ec) {
 	ECCRYPTO_STATUS Status;

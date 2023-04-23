@@ -184,6 +184,7 @@ static void configure_can(void)
 }
 //! [can_init_setup]
 
+// TODO: completely rehaul the handler + add a Tx handle?
 void CAN0_Handler(void) {
 volatile uint32_t rx_buffer_index;
 volatile uint32_t status = can_read_interrupt_status(&can_instance);

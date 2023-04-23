@@ -665,6 +665,18 @@
     <Compile Include="src\ASCON\word.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\CANLib.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\CANLib.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\EncLib.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\EncLib.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\Random\random.c">
       <SubType>compile</SubType>
     </Compile>
@@ -1209,12 +1221,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Enrollment.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Enrollment.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\Enrollment_Server.c">

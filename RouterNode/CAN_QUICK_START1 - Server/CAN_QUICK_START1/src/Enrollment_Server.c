@@ -19,7 +19,7 @@ volatile uint32_t g_received = 0;
 volatile uint32_t flipped = 0;
 uint32_t startVal;
 volatile enum OPERATION STAGE = ENROLLMENT;
-struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
+//struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
 
 static void Delay_ms(uint32_t ms);
 uint32_t ul_tickcount = 0;

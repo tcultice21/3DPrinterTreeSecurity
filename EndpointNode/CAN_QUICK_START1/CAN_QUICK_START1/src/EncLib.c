@@ -117,9 +117,10 @@ int node_msg_check(struct node* source, void* msg_buff) {
 uint8_t ServerPublicKey[32];
 struct Crypto_Data selfData = {.ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}};
 
+// TODO: This probably doesn't need passed the nodes, just the parent and itself?
 int authToParent(void * nodes, struct can_module* can_instance) {
-	uint8_t cryptoBuff[64];
-	struct node_msg_generic* message = cryptoBuff;
+	//uint8_t cryptoBuff[64];
+	struct node_msg_generic message;
 	uint8_t response[16];
 	
 	/*
@@ -149,33 +150,48 @@ int authToParent(void * nodes, struct can_module* can_instance) {
 		return Status;
 	}
 	
+	// The server's public key should be stored so use it to make your shared key?
+	Status = CompressedSecretAgreement(selfData.secret_key,ServerPublicKey,selfData.shared_secret);
+	if (Status != ECCRYPTO_SUCCESS) {
+		printf("Failed Shared Secret Creation\r\n");
+		return Status;
+	}
+	
 	// Server will request a node to send its information, this data is pretty much unnecessary
 	// Wait for it.
-	while(node_msg_check(&server, &cryptoBuff) == 0);
+	while(node_msg_check(&server, &message) == 0);
 	
 	 // We are a node, thus we do that side of the client auth scheme
 	 
 	 // Send your public key to the server
-	 message->header.counter = 0;
-	 message->header.cmd = NODE_CMD_AUTH_PLN;
-	 message->len = FOURQ_KEY_SIZE;
-	 memcpy(message->data,selfData.public_key,FOURQ_KEY_SIZE);
-	 node_msg_send(&self, &server, message, can_instance);
-	 
-	 // The server's public key should be stored so use it to make your shared key?
-	 Status = CompressedSecretAgreement(selfData.secret_key,ServerPublicKey,selfData.shared_secret);
-	 if (Status != ECCRYPTO_SUCCESS) {
-		 printf("Failed Shared Secret Creation\r\n");
-		 return Status;
-	 }
+	 message.header.cmd = NODE_CMD_AUTH_PLN;
+	 message.header.counter = 0;
+	 message.header.TTL = 1;
+	 message.len = FOURQ_KEY_SIZE;
+	 memcpy(message.data,selfData.public_key,FOURQ_KEY_SIZE);
+	 node_msg_send(&self, &server, &message, can_instance);
 	 
 	 // Server will send encrypted PUF has to this node and we will validate it with the one we have stored
 	 // Wait for it.
-	 while(node_msg_check(&server, &cryptoBuff) == 0);
-	 if (memcmp(message->data,serverPUFResponse,16)) {
+	 while(node_msg_check(&server, &message) == 0);
+	 if (memcmp(message.data,serverPUFResponse,16) != 0) {
 		 // TODO: Find out if this PUF response matches when encrypted
+		 printf("The server is not the one you want to connect to!\r\n");
+		 exit(2);
 	 }
 	 
-	 // TODO: If OK, send an OK back, if not, send a not OK back (or just ignore them)
-	 
+	 // TODO: If OK, send an OK back, if not just ignore them and fault
+	memset(message.data,1,8);
+	message.header.cmd = NODE_CMD_AUTH_PLN;
+	message.header.counter = 0;
+	message.header.TTL = 1;
+	message.len = 8;
+	node_msg_send(&self, &server, &message, can_instance);
+	
+	// Server will send the session key back
+	while(node_msg_check(&server, &message) == 0);
+	memcpy(selfData.ASCON_data.session_key,message.data,16);
+	
+	// Receive broadcast saying init is over, time for GO
+	// TODO
 }

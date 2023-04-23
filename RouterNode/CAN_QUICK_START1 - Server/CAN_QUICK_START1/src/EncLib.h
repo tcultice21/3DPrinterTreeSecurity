@@ -1,7 +1,7 @@
 /*
  * EncLib.h
  *
- * Created: 4/18/2023 2:09:41 AM
+ * Created: 4/23/2023 12:20:18 AM
  *  Author: Marshmallow
  */ 
 
@@ -20,7 +20,6 @@
 #include "ASCON/ascon.h"
 #include "ASCON/crypto_aead.h"
 #include "ASCON/constants.h"
-#include "Enrollment.h"
 #include "FourQ/FourQ_api.h"
 #include "Photon/photon.h"
 
@@ -33,6 +32,10 @@ struct ASCON_data {
 };
 
 uint8_t serverPUFResponse[16];
+uint8_t selfPUFResponse[16];
+
+// TODO: Work with Joseph on how child PUF responses should be stored. Maybe a hashmap?
+uint8_t childrenPUFResponses[4][16];
 
 struct Crypto_Data {
 	uint8_t secret_key[FOURQ_KEY_SIZE];
@@ -45,6 +48,7 @@ struct Crypto_Data {
 } Crypto_Data;
 
 extern struct Crypto_Data selfData;
+
 
 
 #endif /* ENCLIB_H_ */
