@@ -35,11 +35,10 @@
     <option id="common2.services.delay" value="Add" config="systick" content-id="Atmel.ASF" />
     <option id="sam0.drivers.can" value="Add" config="" content-id="Atmel.ASF" />
     <option id="sam0.drivers.port" value="Add" config="" content-id="Atmel.ASF" />
-    <option id="sam0.drivers.rtc" value="Add" config="count_polled" content-id="Atmel.ASF" />
     <option id="sam0.drivers.sercom.usart" value="Add" config="callback" content-id="Atmel.ASF" />
+    <option id="sam0.drivers.tc" value="Add" config="callback" content-id="Atmel.ASF" />
     <option id="sam0.drivers.tsens" value="Add" config="callback" content-id="Atmel.ASF" />
     <option id="sam0.utils.stdio.stdio_serial" value="Add" config="" content-id="Atmel.ASF" />
-    <option id="sam0.drivers.tc" value="Add" config="callback" content-id="Atmel.ASF" />
     <option id="common.utils" value="Add" config="" content-id="Atmel.ASF" />
     <option id="sam0.drivers.can.quick_start" value="Add" config="" content-id="Atmel.ASF" />
     <option id="sam0.utils" value="Add" config="" content-id="Atmel.ASF" />
@@ -229,10 +228,6 @@
     <file path="src/ASF/common2/services/delay/sam0/systick_counter.c" framework="" version="3.49.1" source="common2\services\delay\sam0\systick_counter.c" changed="False" content-id="Atmel.ASF" />
     <file path="src/ASF/common2/services/delay/delay.h" framework="" version="3.49.1" source="common2\services\delay\delay.h" changed="False" content-id="Atmel.ASF" />
     <file path="src/ASF/common2/services/delay/sam0/systick_counter.h" framework="" version="3.49.1" source="common2\services\delay\sam0\systick_counter.h" changed="False" content-id="Atmel.ASF" />
-    <file path="src/ASF/sam0/drivers/rtc/rtc_count.h" framework="" version="3.49.1" source="sam0\drivers\rtc\rtc_count.h" changed="False" content-id="Atmel.ASF" />
-    <file path="src/ASF/sam0/drivers/rtc/rtc_tamper.h" framework="" version="3.49.1" source="sam0\drivers\rtc\rtc_tamper.h" changed="False" content-id="Atmel.ASF" />
-    <file path="src/ASF/sam0/drivers/rtc/rtc_sam_l_c/rtc_count.c" framework="" version="3.49.1" source="sam0\drivers\rtc\rtc_sam_l_c\rtc_count.c" changed="False" content-id="Atmel.ASF" />
-    <file path="src/Config/conf_rtc.h" framework="" version="3.49.1" source="sam0\drivers\rtc\rtc_sam_l_c\module_config\conf_rtc.h" changed="False" content-id="Atmel.ASF" />
     <file path="src/ASF/sam0/drivers/tsens/tsens_callback.c" framework="" version="3.49.1" source="sam0\drivers\tsens\tsens_callback.c" changed="False" content-id="Atmel.ASF" />
     <file path="src/ASF/sam0/drivers/tsens/tsens.h" framework="" version="3.49.1" source="sam0\drivers\tsens\tsens.h" changed="False" content-id="Atmel.ASF" />
     <file path="src/ASF/sam0/drivers/tsens/tsens_callback.h" framework="" version="3.49.1" source="sam0\drivers\tsens\tsens_callback.h" changed="False" content-id="Atmel.ASF" />
@@ -297,7 +292,6 @@
       <Value>BOARD=SAMC21_XPLAINED_PRO</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
       <Value>SYSTICK_MODE</Value>
-      <Value>RTC_COUNT_ASYNC=false</Value>
       <Value>TSENS_CALLBACK_MODE=true</Value>
       <Value>TC_ASYNC=true</Value>
     </ListValues>
@@ -335,8 +329,6 @@
       <Value>../src/config</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/rtc</Value>
-      <Value>../src/ASF/sam0/drivers/rtc/rtc_sam_l_c</Value>
       <Value>../src/ASF/sam0/drivers/tsens</Value>
       <Value>../src/ASF/sam0/drivers/tc</Value>
       <Value>../src/ASF/sam0/drivers/tc/tc_sam_l_c</Value>
@@ -394,14 +386,12 @@
       <Value>../src/config</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/rtc</Value>
-      <Value>../src/ASF/sam0/drivers/rtc/rtc_sam_l_c</Value>
       <Value>../src/ASF/sam0/drivers/tsens</Value>
       <Value>../src/ASF/sam0/drivers/tc</Value>
       <Value>../src/ASF/sam0/drivers/tc/tc_sam_l_c</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=SAMC21_XPLAINED_PRO -DUSART_CALLBACK_MODE=true -D__SAMC21J18A__ -DSYSTICK_MODE -DRTC_COUNT_ASYNC=false -DTSENS_CALLBACK_MODE=true -DTC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
+  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=SAMC21_XPLAINED_PRO -DUSART_CALLBACK_MODE=true -D__SAMC21J18A__ -DSYSTICK_MODE -DTSENS_CALLBACK_MODE=true -DTC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/sam0/boards</Value>
@@ -435,8 +425,6 @@
       <Value>../src/config</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/rtc</Value>
-      <Value>../src/ASF/sam0/drivers/rtc/rtc_sam_l_c</Value>
       <Value>../src/ASF/sam0/drivers/tsens</Value>
       <Value>../src/ASF/sam0/drivers/tc</Value>
       <Value>../src/ASF/sam0/drivers/tc/tc_sam_l_c</Value>
@@ -461,7 +449,6 @@
       <Value>BOARD=SAMC21_XPLAINED_PRO</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
       <Value>SYSTICK_MODE</Value>
-      <Value>RTC_COUNT_ASYNC=false</Value>
       <Value>TSENS_CALLBACK_MODE=true</Value>
       <Value>TC_ASYNC=true</Value>
     </ListValues>
@@ -499,8 +486,6 @@
       <Value>../src/config</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/rtc</Value>
-      <Value>../src/ASF/sam0/drivers/rtc/rtc_sam_l_c</Value>
       <Value>../src/ASF/sam0/drivers/tsens</Value>
       <Value>../src/ASF/sam0/drivers/tc</Value>
       <Value>../src/ASF/sam0/drivers/tc/tc_sam_l_c</Value>
@@ -561,15 +546,13 @@
       <Value>../src/FourQ</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/rtc</Value>
-      <Value>../src/ASF/sam0/drivers/rtc/rtc_sam_l_c</Value>
       <Value>../src/ASF/sam0/drivers/tsens</Value>
       <Value>../src/ASF/sam0/drivers/tc</Value>
       <Value>../src/ASF/sam0/drivers/tc/tc_sam_l_c</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=SAMC21_XPLAINED_PRO -DUSART_CALLBACK_MODE=true -D__SAMC21J18A__ -DSYSTICK_MODE -DRTC_COUNT_ASYNC=false -DTSENS_CALLBACK_MODE=true -DTC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
+  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=SAMC21_XPLAINED_PRO -DUSART_CALLBACK_MODE=true -D__SAMC21J18A__ -DSYSTICK_MODE -DTSENS_CALLBACK_MODE=true -DTC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/sam0/boards</Value>
@@ -603,8 +586,6 @@
       <Value>../src/config</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/rtc</Value>
-      <Value>../src/ASF/sam0/drivers/rtc/rtc_sam_l_c</Value>
       <Value>../src/ASF/sam0/drivers/tsens</Value>
       <Value>../src/ASF/sam0/drivers/tc</Value>
       <Value>../src/ASF/sam0/drivers/tc/tc_sam_l_c</Value>
@@ -637,8 +618,6 @@
     <Folder Include="src\ASF\sam0\drivers\can\quick_start_fd\" />
     <Folder Include="src\ASF\sam0\drivers\port\" />
     <Folder Include="src\ASF\sam0\drivers\port\quick_start\" />
-    <Folder Include="src\ASF\sam0\drivers\rtc\" />
-    <Folder Include="src\ASF\sam0\drivers\rtc\rtc_sam_l_c\" />
     <Folder Include="src\ASF\sam0\drivers\sercom\" />
     <Folder Include="src\ASF\sam0\drivers\sercom\usart\" />
     <Folder Include="src\ASF\sam0\drivers\sercom\usart\quick_start\" />
@@ -701,6 +680,9 @@
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\ASF\sam0\drivers\tc\tc_sam_l_c\tc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\config\conf_quick_start_callback.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FanLib.c">
@@ -821,18 +803,6 @@
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\ASF\common2\services\delay\sam0\systick_counter.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\rtc\rtc_count.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\rtc\rtc_tamper.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\sam0\drivers\rtc\rtc_sam_l_c\rtc_count.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\config\conf_rtc.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\Random\random.c">

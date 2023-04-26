@@ -15,9 +15,17 @@
 #include <asf.h>
 #include <stdbool.h>
 
+#define FAN_ENABLE_PORT PIN_PB04
+
+extern int pin_state;
+
 void configure_port_pins(void);
 int testCode(void);
 int initFan(void);
 
+int fan_on(void);
+int fan_off(void);
+int set_fan_state(int i);
+int toggle_fan(void);
 
 #endif /* FANLIB_H_ */

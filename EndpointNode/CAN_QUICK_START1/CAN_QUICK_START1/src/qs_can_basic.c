@@ -50,6 +50,7 @@
 // Peripherals
 #include "TempLib.h"
 #include "FanLib.h"
+#include "MotorLib.h"
 //! [module_var]
 
 //! [module_inst]
@@ -309,23 +310,7 @@ else {
 }
 }
 
-//! [user_menu]
-static void display_menu(void)
-{
-	printf("Menu :\r\n"
-			"  -- Select the action:\r\n"
-			"  0: Set standard filter ID 0: 0x45A, store into Rx buffer. \r\n"
-			"  1: Set standard filter ID 1: 0x469, store into Rx FIFO 0. \r\n"
-			"  2: Send standard message with ID: 0x45A and 4 byte data 0 to 3. \r\n"
-			"  3: Send standard message with ID: 0x469 and 4 byte data 128 to 131. \r\n"
-			"  4: Set extended filter ID 0: 0x100000A5, store into Rx buffer. \r\n"
-			"  5: Set extended filter ID 1: 0x10000096, store into Rx FIFO 1. \r\n"
-			"  6: Send extended message with ID: 0x100000A5 and 8 byte data 0 to 7. \r\n"
-			"  7: Send extended message with ID: 0x10000096 and 8 byte data 128 to 135. \r\n"
-			"  h: Display menu \r\n\r\n");
-}
-//! [user_menu]
-void configure_rtc_count(void);
+/*void configure_rtc_count(void);
 
 struct rtc_module rtc_instance;
 
@@ -363,7 +348,7 @@ void configure_rtc_count(void)
 void SysTick_Handler(void){
 	
 	ul_tickcount += 300;
-}
+}*/
 
 #define TIMEVAL (ul_tickcount+(14400000UL-1-SysTick->VAL)/48000UL)
 
@@ -395,9 +380,10 @@ configure_can();
 // Turn on relevant device
 initTSENS();
 initFan();
+initMotor();
 printf("Starting.\r\n");
-
-testCode();
+toggle_fan();
+//testCode();
 
 while(1) {
 	printf("Value read: %i\r\n",tsens_get_temp());

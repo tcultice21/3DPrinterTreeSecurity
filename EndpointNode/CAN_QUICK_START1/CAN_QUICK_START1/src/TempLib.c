@@ -84,5 +84,5 @@ int tsens_get_temp() {
 	tsens_read_job(&tsens_instance, &tsens_result);
 	//printf("Value read: %i\r\n",(-(int)tsens_result)/100);
 
-	return -((int)tsens_result)/100;
+	return (-TEMPOFFSETVAL-(int)tsens_result)/100;
 }

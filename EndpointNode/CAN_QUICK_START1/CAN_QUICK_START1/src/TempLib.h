@@ -16,6 +16,8 @@
 #include <asf.h>
 #include <stdbool.h>
 
+#define TEMPOFFSETVAL 0
+
 extern int32_t tsens_result;
 extern struct tsens_module tsens_instance;
 extern volatile bool tsens_read_done;
