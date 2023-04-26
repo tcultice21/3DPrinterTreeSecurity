@@ -47,41 +47,15 @@
 #include "CANLib.h"
 #include "EncLib.h"
 
+// Peripherals
+#include "TempLib.h"
+#include "FanLib.h"
 //! [module_var]
 
 //! [module_inst]
 static struct usart_module cdc_instance;
 static struct can_module can_instance;
 //! [module_inst]
-
-
-//! [can_filter_setting]
-#define CAN_RX_STANDARD_FILTER_INDEX_0    0
-#define CAN_RX_STANDARD_FILTER_INDEX_1    1
-#define CAN_RX_STANDARD_FILTER_ID_0     0x45A
-#define CAN_RX_STANDARD_FILTER_ID_0_BUFFER_INDEX     2
-#define CAN_RX_STANDARD_FILTER_ID_1     0x469
-#define CAN_RX_EXTENDED_FILTER_INDEX_0    0
-#define CAN_RX_EXTENDED_FILTER_INDEX_1    1
-#define CAN_RX_EXTENDED_FILTER_ID_0     0x100000A5
-#define CAN_RX_EXTENDED_FILTER_ID_0_BUFFER_INDEX     1
-#define CAN_RX_EXTENDED_FILTER_ID_1     0x10000096
-//! [can_filter_setting]
-
-#define CAN_FILTER_MONITOR 1
-#define CAN_FILTER_WAIT 2
-#define CAN_FILTER_MSG1 3
-#define CAN_FILTER_MSG2 4
-
-// [ENCRYPTION STUFF]
-#define DEBUGCODE	0
-#define NODE_ID		1
-#define NODE_TOTAL	2
-#define TOTAL_SENDS	10
-
-// TODO: Specify two different buffers; One that comes from local nodes and one that comes from the server
-// Probably means they should use two different IDs? (In other words: idInternal=3, idExternal=4);
-// ?????
 
 static volatile uint32_t g_bErrFlag = 0;
 
@@ -398,39 +372,44 @@ int main(void)
 	//uint8_t key;
 
 //! [setup_init]
-	system_init();
-	configure_usart_cdc();
+system_init();
+configure_usart_cdc();
+
 //! [setup_init]
-	SysTick->CTRL = 0;					// Disable SysTick
-	SysTick->LOAD = 14400000UL-1;			// Set reload register for 1mS interrupts
-	NVIC_SetPriority(SysTick_IRQn, 3);	// Set interrupt priority to least urgency
-	SysTick->VAL = 0;					// Reset the SysTick counter value
-	SysTick->CTRL = 0x00000007;			// Enable SysTick, Enable SysTick Exceptions, Use CPU Clock
-	NVIC_EnableIRQ(SysTick_IRQn);		// Enable SysTick Interrupt
-	
-	//configure_rtc_count();
-	//rtc_count_set_period(&rtc_instance, 2000);
+//TODO: Unsure if SysTick works right now. Give me some time.
+/*SysTick->CTRL = 0;					// Disable SysTick
+SysTick->LOAD = 14400000UL-1;			// Set reload register for 1mS interrupts
+NVIC_SetPriority(SysTick_IRQn, 3);	// Set interrupt priority to least urgency
+SysTick->VAL = 0;					// Reset the SysTick counter value
+SysTick->CTRL = 0x00000007;			// Enable SysTick, Enable SysTick Exceptions, Use CPU Clock
+NVIC_EnableIRQ(SysTick_IRQn);		// Enable SysTick Interrupt*/
+
+//configure_rtc_count();
+//rtc_count_set_period(&rtc_instance, 2000);
 //! [main_setup]
-	int last_num = 0;
+int last_num = 0;
 //! [configure_can]
-	configure_can();
+configure_can();
 //! [configure_can]
 
+// Turn on relevant device
+initTSENS();
+initFan();
+printf("Starting.\r\n");
+
+testCode();
+
+while(1) {
+	printf("Value read: %i\r\n",tsens_get_temp());
+}
+
 //! [display_user_menu]
-	//display_menu();
-	printf("Starting.\r\n");
-//! [display_user_menu]
-//volatile ECCRYPTO_STATUS status;
-//selfInfo selfData = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
 uint8_t cryptoBuff[64];
 uint8_t ServerPublicKey[32];
 uint8_t response[16];
 uint8_t ec[16];
-//uint8_t initData[24];
-//uint8_t * session_key = initData;
 unsigned long mlen;
 
-//uint8_t message[16];
 uint8_t message_in[24];
 uint8_t message_out[24];
 uint8_t response_hash[16];

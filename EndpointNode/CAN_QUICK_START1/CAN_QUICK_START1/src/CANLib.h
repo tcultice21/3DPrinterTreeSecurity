@@ -48,4 +48,29 @@ inline struct can_rx_element_buffer * getNextBufferElement(struct multiBuffer * 
 	return &(buff->buffers[last_element]);
 }
 
+// Legacy Defines in case they are needed
+//! [can_filter_setting]
+#define CAN_RX_STANDARD_FILTER_INDEX_0    0
+#define CAN_RX_STANDARD_FILTER_INDEX_1    1
+#define CAN_RX_STANDARD_FILTER_ID_0     0x45A
+#define CAN_RX_STANDARD_FILTER_ID_0_BUFFER_INDEX     2
+#define CAN_RX_STANDARD_FILTER_ID_1     0x469
+#define CAN_RX_EXTENDED_FILTER_INDEX_0    0
+#define CAN_RX_EXTENDED_FILTER_INDEX_1    1
+#define CAN_RX_EXTENDED_FILTER_ID_0     0x100000A5
+#define CAN_RX_EXTENDED_FILTER_ID_0_BUFFER_INDEX     1
+#define CAN_RX_EXTENDED_FILTER_ID_1     0x10000096
+//! [can_filter_setting]
+
+#define CAN_FILTER_MONITOR 1
+#define CAN_FILTER_WAIT 2
+#define CAN_FILTER_MSG1 3
+#define CAN_FILTER_MSG2 4
+
+// [ENCRYPTION STUFF]
+#define DEBUGCODE	0
+#define NODE_ID		1
+#define NODE_TOTAL	2
+#define TOTAL_SENDS	10
+
 #endif /* CANLIB_H_ */

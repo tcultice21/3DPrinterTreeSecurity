@@ -142,7 +142,7 @@ int authToParent(void * nodes, struct can_module* can_instance) {
 	
 	// (For my purpose only) 
 	// Enable monitoring
-	CAN_Rx(TEMP_NODE_ID,TEMP_FILTER_VAL,can_instance);
+	//CAN_Rx(TEMP_NODE_ID,TEMP_FILTER_VAL,can_instance);
 	
 	ECCRYPTO_STATUS Status = CompressedKeyGeneration(selfData.secret_key,selfData.public_key);
 	if (Status != ECCRYPTO_SUCCESS) {
