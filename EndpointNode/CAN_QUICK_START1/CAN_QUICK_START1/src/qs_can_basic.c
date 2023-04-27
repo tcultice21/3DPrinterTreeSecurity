@@ -352,6 +352,8 @@ void SysTick_Handler(void){
 
 #define TIMEVAL (ul_tickcount+(14400000UL-1-SysTick->VAL)/48000UL)
 
+#include <string.h>
+
 int main(void)
 {
 	//uint8_t key;
@@ -378,11 +380,26 @@ configure_can();
 //! [configure_can]
 
 // Turn on relevant device
-initTSENS();
-initFan();
+//initTSENS();
+//initFan();
 initMotor();
+
+char c[15];
+printf("Waiting for signal...");
+scanf("%c", &c);
+
 printf("Starting.\r\n");
-toggle_fan();
+mot_move_to_loc(RESET_LOCATION_VALUE+10);
+while(1) {
+	scanf("%s", &c);
+	//toggle_fan();
+	mot_move_to_loc(currLocationY+atoi(c));
+	printf("currLocationY: %i\r\n",currLocationY);
+	printf("moveLocation: %i\r\n",moveDestinationY);
+	printf("Direction pin: %i\r\n",mot_get_dir());
+	printf("Enable pin: %i\r\n",mot_en_get());
+}
+//toggle_fan();
 //testCode();
 
 while(1) {

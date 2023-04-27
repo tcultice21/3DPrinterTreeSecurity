@@ -20,7 +20,6 @@ struct tsens_module tsens_instance;
 volatile bool tsens_read_done = false;
 
 
-
 static void tsens_complete_callback(enum tsens_callback i)
 {
 	tsens_read_done = true;
@@ -66,7 +65,7 @@ static void configure_tsens_callbacks(void)
 }
 //! [setup]
 
-int initTSENS() {
+int initTSENS(void) {
 	configure_tsens();
 	configure_tsens_callbacks();
 	
@@ -75,7 +74,7 @@ int initTSENS() {
 	return 0;
 }
 
-int tsens_get_temp() {
+int tsens_get_temp(void) {
 	tsens_read_job(&tsens_instance, &tsens_result);
 
 	while (tsens_read_done == false) {

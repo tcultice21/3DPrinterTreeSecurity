@@ -10,20 +10,17 @@
 
 void configure_tc(void);
 void configure_tc_callbacks(void);
-void tc_callback_to_change_duty_cycle(
-struct tc_module *const module_inst);
+void configure_motor_port_pins(void);
+void mot_en_enable(void);
+void mot_en_disable(void);
 
-struct tc_module tc_instance;
+//void tc_callback_to_change_duty_cycle(
+//struct tc_module *const module_inst);
 
-void configure_tc(void);
-void configure_tc_callbacks(void);
-void tc_callback_to_change_duty_cycle(
-struct tc_module *const module_inst);
-
-#define PWM_MOVEMENT_FACTOR		400 // pulses per mm, TODO Figure out if this is true
-#define RESET_LOCATION_VALUE	1000 // location in mm of where we are (meaning we can only move 10cm in either direction)
-#define MIN_LOCATION_VALUE		0
-#define MAX_LOCATION_VALUE		RESET_LOCATION_VALUE*2 // Can only be twice as far as the middle :)
+//void configure_tc(void);
+//void configure_tc_callbacks(void);
+//void tc_callback_to_change_duty_cycle(
+//struct tc_module *const module_inst);
 
 /////////////////////////////////////////
 // Official Joseph Certificate for     //
@@ -38,15 +35,17 @@ enum {
 	MOTOR_STATE_DISABLED = 2
 } motor_state = MOTOR_STATE_DISABLED;
 
+#define DOWN 1
+#define UP 0
 
 //! [module_inst]
 struct tc_module tc_instance;
 //! [module_inst]
 
-volatile uint16_t moveDestinationY = 0;
+volatile uint16_t moveDestinationY = 1000;
 volatile uint16_t currLocationY = 1000;
-static int mot_dir = 0;
-static int mot_enable = 0;
+int mot_dir = 0;
+int mot_enable = 0;
 
 // Motor EN/DIR pin enables/disables/configures
 void configure_motor_port_pins(void)
@@ -61,13 +60,13 @@ void configure_motor_port_pins(void)
 
 // Motor Enable Functions
 void mot_en_enable(void) {
-	mot_enable = 1;
+	mot_enable = 0;
 	port_pin_set_output_level(MOTOR_EN_PIN, mot_enable);
 }
 
 // You USUALLY don't want to be doing what is below this!!! Snapmaker wants them "always on"
 void mot_en_disable(void) {
-	mot_enable = 0;
+	mot_enable = 1;
 	port_pin_set_output_level(MOTOR_EN_PIN, mot_enable);
 }
 
@@ -78,16 +77,16 @@ int mot_en_get(void) {
 // Motor Direction Functions
 int mot_dir_toggle(void) {
 	mot_dir = !mot_dir;
-	port_pin_set_output_level(MOTOR_DIR_PIN, mot_dir);
+	port_pin_set_output_level(MOTOR_DIR_PIN, !mot_dir);
 	return mot_dir;
 }
 
 void mot_dir_set(int dirVal) {
 	mot_dir = dirVal;
-	port_pin_set_output_level(MOTOR_DIR_PIN, mot_dir);
+	port_pin_set_output_level(MOTOR_DIR_PIN, !mot_dir);
 }
 
-int mot_dir_get(void) {
+int mot_get_dir(void) {
 	return mot_dir;
 }
 
@@ -102,11 +101,12 @@ void configure_tc(void)
 	//! [setup_config_defaults]
 	tc_get_config_defaults(&config_tc);
 	//! [setup_config_defaults]
-
+	config_tc.clock_prescaler = TC_CLOCK_PRESCALER_DIV1;
+	//config_tc.clock_source = GCLK_GENERATOR_2;
 	//! [setup_change_config]
 	config_tc.counter_size    = TC_COUNTER_SIZE_16BIT;
-	config_tc.wave_generation = TC_WAVE_GENERATION_NORMAL_PWM;
-	config_tc.counter_16_bit.compare_capture_channel[0] = 0xFFFF;
+	config_tc.wave_generation = TC_WAVE_GENERATION_MATCH_FREQ;
+	config_tc.counter_16_bit.compare_capture_channel[0] = 10000;
 	//! [setup_change_config]
 
 	//! [setup_change_config_pwm]
@@ -117,6 +117,7 @@ void configure_tc(void)
 
 	//! [setup_set_config]
 	tc_init(&tc_instance, PWM_MODULE, &config_tc);
+	//tc_set_top_value(&tc_instance,0xFF);
 	//! [setup_set_config]
 
 	//! [setup_enable]
@@ -142,15 +143,19 @@ void tc_callback_to_change_duty_cycle(
 struct tc_module *const module_inst)
 {
 	static uint16_t i = 0;
-	if(i > PWM_MOVEMENT_FACTOR) {
+	//printf("i = %i\r\n",i);
+	if(i >= PWM_MOVEMENT_FACTOR) {
+		printf("1mm Moved %i\r\n",currLocationY);
 		// We have moved 1mm
 		currLocationY += (mot_dir*2-1);
-		if (mot_dir == 1 && currLocationY >= moveDestinationY) {
+		if (mot_dir == DOWN && currLocationY >= moveDestinationY) {
 			// Stop the TC PWM
+			printf("Motor shut off.\r\n");
 			motor_shut_off();
 		}
-		else if (mot_dir == 0 && currLocationY <= moveDestinationY) {
+		else if (mot_dir == UP && currLocationY <= moveDestinationY) {
 			// Stop the TC PWM
+			printf("Motor shut off.\r\n");
 			motor_shut_off();
 		}
 		i = 0;
@@ -158,6 +163,7 @@ struct tc_module *const module_inst)
 	else {
 		i++;
 	}
+	//tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0xFFF);
 	//i += 16;
 	//tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, i + 1);
 }
@@ -181,18 +187,20 @@ void configure_tc_callbacks(void)
 
 // Init Functions
 // This will NOT make the motor move, just start it up
-int initMotor() {
+int initMotor(void) {
 	configure_tc();
 	configure_tc_callbacks();
-	
+	configure_motor_port_pins();
 	system_interrupt_enable_global();
 	
 	// Assume user has brought the device to the middle (no endstops for us yet)
 	currLocationY = RESET_LOCATION_VALUE;
 	moveDestinationY = RESET_LOCATION_VALUE;
-	mot_dir_set(0);
-	mot_en_disable(); // TODO double check this is init'ed to "shut off motor"
+	mot_dir_set(DOWN);
+	mot_en_enable(); // TODO double check this is init'ed to "turn on motor"
 	motor_state = MOTOR_STATE_IDLE;
+	tc_enable(&tc_instance);
+	motor_shut_off();
 	
 	return 0;
 }
@@ -220,11 +228,11 @@ int mot_move_to_loc(uint16_t location) {
 	moveDestinationY = location;
 	
 	// Set the direction
-	if (location < currLocationY) {
-		mot_dir_set(1); // Double check this is right!!!
+	if (currLocationY < location) {
+		mot_dir_set(DOWN); // Double check this is right!!!
 	}
 	else {
-		mot_dir_set(0);
+		mot_dir_set(UP);
 	}
 	
 	// Enable pin should already be set.

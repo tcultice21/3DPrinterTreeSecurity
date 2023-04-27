@@ -23,7 +23,7 @@ extern struct tsens_module tsens_instance;
 extern volatile bool tsens_read_done;
 
 // Testing function
-int initTSENS();
-int tsens_get_temp();
+int initTSENS(void);
+int tsens_get_temp(void);
 
 #endif /* TEMPLIB_H_ */
