@@ -27,5 +27,6 @@ int fan_on(void);
 int fan_off(void);
 int set_fan_state(int i);
 int toggle_fan(void);
+int get_fan_state(void);
 
 #endif /* FANLIB_H_ */

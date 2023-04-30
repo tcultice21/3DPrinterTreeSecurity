@@ -18,7 +18,7 @@ struct tsens_module tsens_instance;
 //! [module_inst]
 
 volatile bool tsens_read_done = false;
-
+uint32_t TEMPOFFSETVAL = 1000;
 
 static void tsens_complete_callback(enum tsens_callback i)
 {
@@ -72,6 +72,15 @@ int initTSENS(void) {
 	system_interrupt_enable(SYSTEM_INTERRUPT_MODULE_TSENS);
 	system_interrupt_enable_global();
 	return 0;
+}
+
+int set_tsens_offset(uint32_t offset) {
+	TEMPOFFSETVAL = offset;
+	return 0;
+}
+
+int get_tsens_offset(void) {
+	return TEMPOFFSETVAL;
 }
 
 int tsens_get_temp(void) {

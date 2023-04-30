@@ -24,7 +24,7 @@ volatile uint32_t g_rec_public = 0;
 
 
 volatile enum OPERATION STAGE = ENROLLMENT;
-struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
+//struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
 
 uint8_t Enrollment(uint8_t node_id, uint8_t *secret_key, uint8_t *ServerPublicKey, uint8_t *ec, struct can_module * can_inst) {
 	// Send_Obj - FIFO 0

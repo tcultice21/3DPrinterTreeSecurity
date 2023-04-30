@@ -25,8 +25,11 @@ static void Delay_ms(uint32_t ms);
 uint32_t ul_tickcount = 0;
 #define TIMEVAL (ul_tickcount+(SysTick->VAL)/48000)
 
+/* bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
+uint8_t (*StoredResponseHashes)[16], uint8_t *ec, struct can_module * can_inst){ */
+	
 bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
-	uint8_t (*StoredResponseHashes)[16], uint8_t *ec, struct can_module * can_inst){
+	uint8_t (*StoredResponseHashes)[16], uint8_t *ec, struct can_module * can_inst, struct can_module * can1_instance){
 	bool hardcoded;
 	//uint8_t message[8];
 	uint8_t response[16];
@@ -75,9 +78,12 @@ bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
 	memset(tx_element.data,hardcoded,8);
 	can_set_tx_buffer_element(can_inst, &tx_element,
 		CAN_FILTER_REGULAR_SEND);
-	can_tx_transfer_request(can_inst, 1 << CAN_FILTER_REGULAR_SEND);
+	//can_set_tx_buffer_element(can1_instance, &tx_element, CAN_FILTER_REGULAR_SEND);
 	
+	can_tx_transfer_request(can_inst, 1 << CAN_FILTER_REGULAR_SEND);
+	//can_tx_transfer_request(can1_instance, 1 << CAN_FILTER_REGULAR_SEND);
 	while(!(can_tx_get_transmission_status(can_inst) & (1 << CAN_FILTER_REGULAR_SEND)));
+	//while(!(can_tx_get_transmission_status(can1_instance) & (1 << CAN_FILTER_REGULAR_SEND)));
 	
 	if(hardcoded) {
 		printf("Hardcoding a response\r\n");

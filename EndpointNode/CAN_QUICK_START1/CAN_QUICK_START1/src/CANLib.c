@@ -1,12 +1,20 @@
 /*
  * CANLib.c
  *
- * Created: 4/14/2023 10:18:20 AM
- *  Author: tcultice
+ * Created: 4/23/2023 12:21:53 AM
+ *  Author: Marshmallow
  */ 
 #include "CANLib.h"
 
-struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
+struct can_module can0_instance;
+struct multiBuffer CAN0_rx_element_buff[NETWORK_MAX_BUFFS];
+
+#ifdef SYSTEM_ROUTER_TYPE
+struct can_module can1_instance;
+struct multiBuffer CAN1_rx_element_buff[NETWORK_MAX_BUFFS];
+#endif
+
+//struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
 
 uint8_t * CAN_Rx(uint16_t idVal, int bufferNum, struct can_module * can_inst) {
 	struct can_standard_message_filter_element sd_filter;
@@ -17,7 +25,7 @@ uint8_t * CAN_Rx(uint16_t idVal, int bufferNum, struct can_module * can_inst) {
 	can_set_rx_standard_filter(can_inst, &sd_filter,
 		bufferNum);
 	can_enable_interrupt(can_inst, CAN_RX_BUFFER_NEW_MESSAGE);
-	return rx_element_buff[bufferNum].buffers[rx_element_buff[bufferNum].last_read].data;
+	return NULL;//rx_element_buff[bufferNum].buffers[rx_element_buff[bufferNum].last_read].data;
 }
 
 uint8_t *CAN_Rx_FIFO(uint16_t idVal, uint16_t maskVal, uint16_t filterVal, struct can_module * can_inst) {
@@ -29,7 +37,7 @@ uint8_t *CAN_Rx_FIFO(uint16_t idVal, uint16_t maskVal, uint16_t filterVal, struc
 	can_set_rx_standard_filter(can_inst, &sd_filter,
 		filterVal);
 	can_enable_interrupt(can_inst, CAN_RX_FIFO_0_NEW_MESSAGE);
-	return rx_element_buff[filterVal].buffers[rx_element_buff[filterVal].last_read].data;
+	return NULL;//rx_element_buff[filterVal].buffers[rx_element_buff[filterVal].last_read].data;
 }
 
 uint8_t CAN_Rx_Disable(int bufferNum, struct can_module * can_inst) {
@@ -95,10 +103,9 @@ int CAN_Tx_Raw(uint16_t idVal, struct can_tx_element * tx_element, uint32_t data
 
 int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct can_module * can_inst) {
 	struct can_tx_element tx_element;
-	if (dataLen > 56 || dataLen < 8 || dataLen % 8 != 0) {
+	/*if (dataLen > 56 || dataLen < 8 || dataLen % 8 != 0) {
 		printf("WARNING: CAN_Tx received value of %d",dataLen);
-		return -1;
-	}
+	}*/
 	
 	memset(tx_element.data,0,64);
 	memcpy(tx_element.data,data,dataLen);
@@ -118,4 +125,68 @@ int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct c
 	can_tx_transfer_request(can_inst, 1 << buffer);
 	while(!(can_tx_get_transmission_status(can_inst) & (1 << buffer)));
 	can_enable_interrupt(can_inst, CAN_TX_EVENT_FIFO_NEW_ENTRY);*/
+}
+
+int network_start_listening(struct network* network, struct network_addr* selfAddr) {
+	// This is trying to setup the broadcast listen.
+	if(selfAddr->CAN_addr == BROADCAST_ID) {
+		CAN_Rx(selfAddr->CAN_addr,network->broadcast_buff_num, network->can_instance);
+		return 1;
+	}
+	// This is trying to setup a different listen.
+	CAN_Rx(selfAddr->CAN_addr,network->buff_num, network->can_instance);
+	return 0;
+}
+
+// Tx only uses one Buff per network
+// Rx receives on multiple buffers based on broadcast or not (is set up on its own)
+void network_send(struct network* network, struct network_addr* addr, uint8_t* data, size_t len) {
+	struct can_module * can_instance = network->can_instance;
+	debug_print("Network send - Message: \n");
+	for (int sex = 0; sex < len; sex++) {
+		printf("%x ",data[sex]);
+	}
+	printf("\r\n");
+	CAN_Tx(addr->CAN_addr,data,len,network->buff_num,can_instance);
+	CAN_Tx_Wait(network->buff_num,can_instance);
+	debug_print("Successfully Sent Data to ID %d.\n", addr->CAN_addr);
+}
+
+int network_check_any(struct network* network, struct network_addr* source, uint8_t* buff, size_t len) {
+	(void)source;
+	//struct node_msg_generic structBuf;
+	unsigned long mlen;
+	
+	
+	if (network->rx_element_buff[network->buff_num].last_read != network->rx_element_buff[network->buff_num].last_write) {
+		debug_print("Received regular data.\n");
+		struct can_rx_element_buffer * message = getNextBufferElement(&(network->rx_element_buff[network->buff_num]));
+		uint8_t dataLen = ((DLC_to_Val(message->R1.bit.DLC) < len) ? DLC_to_Val(message->R1.bit.DLC) : len);
+		
+		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
+		memcpy(buff,message->data,dataLen);
+		debug_print("Network Receive - Message: \n");
+		for (int sex = 0; sex < dataLen; sex++) {
+			printf("%x ",buff[sex]);
+		}
+		printf("\r\n");
+		return dataLen;
+	}
+	else if (network->broadcast_buff_num != (uint16_t)-1U && network->rx_element_buff[network->broadcast_buff_num].last_read != network->rx_element_buff[network->broadcast_buff_num].last_write) {
+		debug_print("Received broadcast data.\n");
+		struct can_rx_element_buffer * message = getNextBufferElement(&(network->rx_element_buff[network->broadcast_buff_num]));
+		uint8_t dataLen = ((DLC_to_Val(message->R1.bit.DLC) < len) ? DLC_to_Val(message->R1.bit.DLC) : len);
+		
+		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
+		memcpy(buff,message->data,dataLen);
+		debug_print("Broadcast Network Receive - Message: \n");
+		for (int sex = 0; sex < dataLen; sex++) {
+			printf("%x ",buff[sex]);
+		}
+		printf("\r\n");
+		return dataLen;
+	}
+	else {
+		return 0;
+	}
 }

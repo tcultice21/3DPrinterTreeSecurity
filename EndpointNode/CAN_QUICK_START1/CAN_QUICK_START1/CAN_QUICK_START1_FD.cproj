@@ -247,7 +247,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.edbg</avrtool>
-    <avrtoolserialnumber>ATML2419082700004448</avrtoolserialnumber>
+    <avrtoolserialnumber>ATML2419082700004406</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x11010500</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_edbg>
@@ -258,17 +258,16 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.edbg</ToolType>
-      <ToolNumber>ATML2419082700004448</ToolNumber>
+      <ToolNumber>ATML2419082700004406</ToolNumber>
       <ToolName>EDBG</ToolName>
     </com_atmel_avrdbg_tool_edbg>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
     <custom>
       <ToolOptions>
         <InterfaceProperties>
-          <SwdClock>2000000</SwdClock>
+          <SwdClock>0</SwdClock>
         </InterfaceProperties>
-        <InterfaceName>
-        </InterfaceName>
+        <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>custom</ToolType>
       <ToolNumber>
@@ -665,11 +664,27 @@
     <Folder Include="src\config\" />
     <Folder Include="src\FourQ" />
     <Folder Include="src\ASCON" />
+    <Folder Include="src\TreeProtocol" />
     <Folder Include="src\SHA512" />
     <Folder Include="src\Random" />
     <Folder Include="src\Photon" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\TreeProtocol\node.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\TreeProtocol\node.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\TreeProtocol\router_node.c">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\TreeProtocol\servo_node.c">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\TreeProtocol\top_node.c">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\ASF\sam0\drivers\tc\tc.h">
       <SubType>compile</SubType>
     </None>
@@ -683,6 +698,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\config\conf_quick_start_callback.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\EPPeripherals.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FanLib.c">
@@ -1331,12 +1349,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Enrollment.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Enrollment.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FourQ\crypto_util.c">

@@ -42,8 +42,8 @@ enum {
 struct tc_module tc_instance;
 //! [module_inst]
 
-volatile uint16_t moveDestinationY = 1000;
-volatile uint16_t currLocationY = 1000;
+volatile uint16_t moveDestinationY = 0;
+volatile uint16_t currLocationY = 0;
 int mot_dir = 0;
 int mot_enable = 0;
 
@@ -203,6 +203,14 @@ int initMotor(void) {
 	motor_shut_off();
 	
 	return 0;
+}
+
+int mot_currPos_get(void) {
+	return currLocationY;
+}
+
+int mot_moveLoc_get(void) {
+	return moveDestinationY;
 }
 
 // Set move location

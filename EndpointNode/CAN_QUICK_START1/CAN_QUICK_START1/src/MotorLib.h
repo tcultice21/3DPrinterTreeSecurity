@@ -44,5 +44,7 @@ int initMotor(void);
 int mot_move_to_loc(uint16_t location);
 int mot_get_dir(void);
 int mot_en_get(void);
+int mot_moveLoc_get(void);
+int mot_currPos_get(void);
 
 #endif /* MOTORLIB_H_ */

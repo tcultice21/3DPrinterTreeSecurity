@@ -16,14 +16,16 @@
 #include <asf.h>
 #include <stdbool.h>
 
-#define TEMPOFFSETVAL 0
+extern uint32_t TEMPOFFSETVAL;
 
 extern int32_t tsens_result;
 extern struct tsens_module tsens_instance;
 extern volatile bool tsens_read_done;
 
-// Testing function
+// functions
 int initTSENS(void);
 int tsens_get_temp(void);
+int get_tsens_offset(void);
+int set_tsens_offset(uint32_t offset);
 
 #endif /* TEMPLIB_H_ */

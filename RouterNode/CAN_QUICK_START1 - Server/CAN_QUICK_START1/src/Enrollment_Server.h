@@ -44,10 +44,11 @@ extern volatile uint32_t flipped;
 volatile enum OPERATION STAGE;
 //extern struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
 
+/*bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
+	uint8_t (*StoredResponseHashes)[16], uint8_t *ec, struct can_module * can_inst);*/
+
 bool EnrollNodes(int total_nodes, uint8_t (*StoredPublicKeys)[32],
-	uint8_t (*StoredResponseHashes)[16], uint8_t *ec, struct can_module * can_inst);
-
-
+uint8_t (*StoredResponseHashes)[16], uint8_t *ec, struct can_module * can_inst, struct can_module * can1_instance);
 
 /*inline struct can_rx_element_buffer * getNextBufferElement(struct multiBuffer * buff) {
 	if (buff->last_write == buff->last_read) return NULL;

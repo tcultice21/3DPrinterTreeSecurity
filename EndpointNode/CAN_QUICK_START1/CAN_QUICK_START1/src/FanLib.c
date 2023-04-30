@@ -47,11 +47,11 @@ int fan_off(void) {
 
 
 int set_fan_state(int i) {
-	pin_state = i % 1;
+	pin_state = i & 1;
 	port_pin_set_output_level(FAN_ENABLE_PORT, pin_state);
 }
 
-int get_fan_state() {
+int get_fan_state(void) {
 	return pin_state;
 }
 
