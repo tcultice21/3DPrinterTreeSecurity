@@ -95,30 +95,30 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 	}
 	photon128(selfData.shared_secret,32,selfData.shared_hash);
 	
-	debug_print("Waiting for our time in Auth.\r\n");
+	//debug_print("Waiting for our time in Auth.\r\n");
 	// Server will request a node to send its information, this data is pretty much unnecessary
 	// Wait for it.
 	while(node_msg_check(parent_info, &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
-	debug_print("Our turn in Auth.\r\n");
+	//debug_print("Our turn in Auth.\r\n");
 	//We are a router, thus we handle auth differently
 	
 	// Send public key to Server
 	memcpy(message.data,selfData.public_key,FOURQ_KEY_SIZE);
-	debug_print("Public Key: \n");
-	for (int sex = 0; sex < FOURQ_KEY_SIZE; sex++) {
+	//debug_print("Public Key: \n");
+	/*for (int sex = 0; sex < FOURQ_KEY_SIZE; sex++) {
 		printf("%x ",selfData.public_key[sex]);
 	}
-	printf("\r\n");
+	printf("\r\n");*/
 	node_msg_send_generic(my_parent_info,parent_info,NODE_CMD_AUTH_PLN,&message,FOURQ_KEY_SIZE);
 	// If this auth fails, the server will not be sending anything else and we will be stuck.
 	
 	// Server will then share its encrypted hash to verify the other way around too.
 	while(node_msg_check(parent_info, &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
-	debug_print("Enc Response: \n");
+	/*debug_print("Enc Response: \n");
 	for (int sex = 0; sex < message.header.len-8; sex++) {
 		printf("%x ",message.data[sex]);
 	}
-	printf("\r\n");
+	printf("\r\n");*/
 	crypto_aead_decrypt(response,&mlen,NULL,message.data,message.header.len-8,NULL,NULL,selfData.ASCON_data.nonce,selfData.shared_hash);
 	if (memcmp(response,parentStoredKeys->router_data.response_hash,mlen) != 0) {
 		// TODO: Find out if this PUF response matches when encrypted
@@ -147,11 +147,11 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 		exit(2);
 	}
 	memcpy(selfData.ASCON_data.session_key,response,16);
-	debug_print("Generated Session Key: \n");
+	/*debug_print("Generated Session Key: \n");
 	for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
 		printf("%x ",selfData.ASCON_data.session_key[sex]);
 	}
-	printf("\r\n");
+	printf("\r\n");*/
 	
 	// Receive broadcast saying init is over, time for GO (because you are a router, your next step will be to do the server-side yourself)
 	while(node_msg_check(parent_broadcast_info, &message) == 0);

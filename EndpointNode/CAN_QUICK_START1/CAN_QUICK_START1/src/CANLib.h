@@ -19,7 +19,7 @@
 extern char* node_my_name;
 #define debug_print(str,...) printf("%s: " str "\r",node_my_name,##__VA_ARGS__)
 
-#define NETWORK_MAX_BUFFER_ELEMENTS 16
+#define NETWORK_MAX_BUFFER_ELEMENTS 8
 #define NODE_TOTAL	3 // K
 
 // Special Reserved Addresses
@@ -44,21 +44,21 @@ extern char* node_my_name;
 // #define SYSTEM_ENDPOINT_TYPE
 // #define SYSTEM_NODE_TYPE 3
 ////////////////////
-#define EP_2A_TSENS
+// #define EP_2A_TSENS
+// #define SYSTEM_ENDPOINT_TYPE
+// #define SYSTEM_NODE_TYPE 4
+////////////////////
+// #define EP_2B_MOTOR
+// #define SYSTEM_ENDPOINT_TYPE
+// #define SYSTEM_NODE_TYPE 2
+////////////////////
+// #define EP_2B_FAN
+// #define SYSTEM_ENDPOINT_TYPE
+// #define SYSTEM_NODE_TYPE 3
+////////////////////
+#define EP_2B_TSENS
 #define SYSTEM_ENDPOINT_TYPE
 #define SYSTEM_NODE_TYPE 4
-////////////////////
-//#define EP_2B_MOTOR
-//#define SYSTEM_ENDPOINT_TYPE
-//#define SYSTEM_NODE_TYPE 2
-////////////////////
-//#define EP_2B_FAN
-//#define SYSTEM_ENDPOINT_TYPE
-//#define SYSTEM_NODE_TYPE 3
-////////////////////
-//#define EP_2B_TSENS
-//#define SYSTEM_ENDPOINT_TYPE
-//#define SYSTEM_NODE_TYPE 4
 /////////////////////////////////
 
 

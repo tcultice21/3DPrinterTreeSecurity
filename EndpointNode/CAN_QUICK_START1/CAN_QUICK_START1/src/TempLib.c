@@ -18,7 +18,7 @@ struct tsens_module tsens_instance;
 //! [module_inst]
 
 volatile bool tsens_read_done = false;
-uint32_t TEMPOFFSETVAL = 1000;
+uint32_t TEMPOFFSETVAL = 0;
 
 static void tsens_complete_callback(enum tsens_callback i)
 {

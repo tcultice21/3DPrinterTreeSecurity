@@ -9,6 +9,7 @@
 #ifndef ENCLIB_H_
 #define ENCLIB_H_
 
+#define USE_ASCON
 #include "CANLib.h"
 #include <stdlib.h>
 #include <stdint.h>
@@ -16,10 +17,15 @@
 #include <string.h>
 #include <asf.h>
 #include <stdbool.h>
+#ifdef USE_ASCON
 #include "ASCON/api.h"
 #include "ASCON/ascon.h"
 #include "ASCON/crypto_aead.h"
 #include "ASCON/constants.h"
+#endif
+#ifdef USE_PQC
+#include "null"
+#endif
 #include "TreeProtocol/node.h"
 //#include "Enrollment.h"
 #include "FourQ/FourQ_api.h"
