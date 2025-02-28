@@ -574,7 +574,6 @@ void _usart_interrupt_handler(
 				}
 
 			} else {
-
 				/* Read current packet from DATA register,
 				 * increment buffer pointer and decrement buffer length */
 				uint16_t received_data = (usart_hw->DATA.reg & SERCOM_USART_DATA_MASK);

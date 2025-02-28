@@ -16,28 +16,56 @@
 #include <string.h>
 #include <asf.h>
 #include <stdbool.h>
+
+// IMPORTANT!!! Select One:
+//#define USE_ASCON 1
+#define USE_PQC 1
+
+
+//#ifdef USE_ASCON
 #include "ASCON/api.h"
 #include "ASCON/ascon.h"
 #include "ASCON/crypto_aead.h"
 #include "ASCON/constants.h"
-#include "TreeProtocol/node.h"
-//#include "Enrollment.h"
 #include "FourQ/FourQ_api.h"
 #include "Photon/photon.h"
+//#endif
+
+#ifdef USE_PQC
+#include "PQCEnc/api.h"
+#include "PQCEnc/aes.h"
+#include "PQCEnc/symmetric.h"
+#include "PQCEnc/aes.h"
+#endif
+
+#include "TreeProtocol/node.h"
+
+//#include "Enrollment.h"
+
 
 #define FOURQ_KEY_SIZE 32
 #define RESPONSE_SIZE 16
 
-// TODO: Do a server define based on hardware ID?... idk how we're going to store the router's public keys
 
 struct Router_Data {
+	#ifdef USE_ASCON
 	uint8_t response_hash[RESPONSE_SIZE];
 	uint8_t public_key[FOURQ_KEY_SIZE];
+	#endif
+	#ifdef USE_PQC
+	uint8_t response_hash[SHA3_256_RATE];
+	#endif
 };
 
 struct HWID_Table_Entry {
 	struct hardware_id hw_id;
 	struct Router_Data router_data;
+};
+
+// Information needed for post-quantum cryptography
+struct AES_Data {
+	uint8_t session_key[AES256_KEYBYTES];
+	volatile uint8_t nonce[CRYPTO_NPUBBYTES];
 };
 
 struct ASCON_Data {
@@ -46,12 +74,22 @@ struct ASCON_Data {
 };
 
 struct Crypto_Data {
-	uint8_t secret_key[FOURQ_KEY_SIZE];
-	uint8_t public_key[FOURQ_KEY_SIZE];
-	uint8_t shared_secret[FOURQ_KEY_SIZE];
-	uint8_t shared_hash[ASCON_128_KEYBYTES];
-	struct ASCON_Data ASCON_data;
-	struct ASCON_Data child_ASCON_data;
+	#ifdef USE_ASCON
+		uint8_t secret_key[FOURQ_KEY_SIZE];
+		uint8_t public_key[FOURQ_KEY_SIZE];
+		uint8_t shared_secret[FOURQ_KEY_SIZE];
+		uint8_t shared_hash[ASCON_128_KEYBYTES];
+		struct ASCON_Data ASCON_data;
+		struct ASCON_Data child_ASCON_data;
+	#endif
+	#ifdef USE_PQC
+		uint8_t secret_key[PQCLEAN_KYBER512_CLEAN_CRYPTO_SECRETKEYBYTES];
+		uint8_t public_key[PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES];
+		uint8_t parent_public_key[PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES];
+		uint8_t shared_secret[AES256_KEYBYTES];
+		struct AES_Data ASCON_data;
+		struct AES_Data child_ASCON_data;
+	#endif
 	//uint8_t session_key[ASCON_128_KEYBYTES];
 	//volatile uint8_t nonce[CRYPTO_NPUBBYTES];
 };
@@ -59,6 +97,7 @@ struct Crypto_Data {
 extern struct Crypto_Data selfData;
 extern struct HWID_Table_Entry HWIDTable[NODE_TOTAL+1];
 extern struct HWID_Table_Entry * parentStoredKeys;
+
 extern const char* myname;
 
 // Use the node type to generate the values, we can treat the nodes as the following hardware_ids:

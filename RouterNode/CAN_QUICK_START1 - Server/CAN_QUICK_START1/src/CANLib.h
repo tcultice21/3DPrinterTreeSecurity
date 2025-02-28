@@ -17,9 +17,8 @@
 #include <stdbool.h>
 
 extern char* node_my_name;
-#define debug_print(str,...) printf("%s: " str "\r",node_my_name,##__VA_ARGS__)
 
-#define NETWORK_MAX_BUFFER_ELEMENTS 24
+#define NETWORK_MAX_BUFFER_ELEMENTS 16
 #define NODE_TOTAL	3 // K
 
 // Special Reserved Addresses
@@ -55,6 +54,14 @@ extern char* node_my_name;
 //#define SYSTEM_ENDPOINT_TYPE*/
 /////////////////////////////////
 
+#ifdef SYSTEM_ROOT_ROUTER
+#define debug_print(str,...) do{\
+	int size = snprintf(NULL, 0, "%s: " str,node_my_name,##__VA_ARGS__);\
+	printf("%01x,1:%s: " str,size+2,node_my_name,##__VA_ARGS__);\
+} while(0)
+#else
+#define debug_print(str,...) printf("%s: " str "\r",node_my_name,##__VA_ARGS__)
+#endif
 
 #if defined(SYSTEM_ENDPOINT_TYPE)
 #define NETWORK_MAX_BUFFS 2
@@ -71,7 +78,7 @@ extern char* node_my_name;
 #define CAN1_COMM_BUFF_INDEX	2// Buffer for all normal traffic
 #elif defined(SYSTEM_ROOT_ROUTER)
 #define NETWORK_MAX_BUFFS 1
-#define EXPECTED_NUM_CHILDREN	2
+#define EXPECTED_NUM_CHILDREN	3
 #define EXPECTED_NUM_SIBLINGS	0
 #define CAN0_COMM_BUFF_INDEX    0 // Use for Server Rx=0 and Tx'ing
 #else

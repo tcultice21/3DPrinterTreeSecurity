@@ -47,7 +47,7 @@ uint32_t ul_tickcount = 0;
 
 struct node parent_broadcast_info;
 struct node parent_table[10] = { 0 };
-int parent_max_nodes = 2; //EXPECTED_NUM_CHILDREN;
+int parent_max_nodes = EXPECTED_NUM_SIBLINGS;
 int parent_num_nodes = 1;
 struct node* parent_info = &parent_table[0];
 struct node* my_parent_info = NULL;
@@ -62,6 +62,134 @@ char* node_my_name;
 	
 //! [module_var]
 
+//! [setup]
+
+int hexchar_to_int(char input) {
+	if (input >= '0' && input <= '9') {
+		return input - '0';
+	}
+	else if (input >= 'A' && input <= 'F') {
+		return input - 'A' + 10;
+	}
+	else if (input >= 'a' && input <= 'f') {
+		return input - 'a' + 10;
+	}
+}
+
+char get_char();
+
+char getchar_wrapper() {
+	char to_return;
+	//uint16_t temp;
+	do {
+		to_return = get_char();
+		//while(usart_read_wait(&cdc_instance,&temp) != STATUS_OK);
+		//to_return = (char)temp;
+		//debug_print("Received character %d\n", to_return);
+	} while (to_return == '\r');
+	return to_return;
+}
+
+struct supervisor_command {
+	uint8_t endpoint;
+	uint8_t cmd; // 0 for read, 1 for write
+	union {
+		struct {
+			uint8_t read_addr;
+		};
+		struct {
+			uint8_t write_addr;
+			uint8_t write_data;
+		};
+	};
+};
+
+struct supervisor_response {
+	uint8_t endpoint;
+	uint8_t cmd; // 0 for read response, 1 for write response;
+	union {
+		struct {
+			uint8_t read_addr;
+			uint8_t read_data;
+		};
+		struct {
+			uint8_t write_addr;
+		};
+	};
+};
+
+#define MAX_RX_BUFFER_LENGTH   64
+struct rx_buffer {
+	volatile uint8_t last_write;
+	volatile uint8_t last_read;
+	volatile uint8_t buffers[MAX_RX_BUFFER_LENGTH];
+};
+struct rx_buffer rx_buffer = {0};
+
+char get_char() {
+	while (rx_buffer.last_write == rx_buffer.last_read);
+	register int last_element = rx_buffer.last_read;
+	
+	rx_buffer.last_read = (rx_buffer.last_read + 1) % MAX_RX_BUFFER_LENGTH;
+	//printf("Escaped...\r\n");
+	return rx_buffer.buffers[last_element];
+}
+
+//! [callback_funcs]
+void usart_read_callback(uint8_t instance)
+{
+	struct usart_module *usart_module
+	= (struct usart_module *)_sercom_instances[instance];
+	//usart_write_buffer_job(&cdc_instance,
+	//(uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
+	uint16_t temp = (usart_module->hw->USART.DATA.reg & SERCOM_USART_DATA_MASK);
+	//printf("Called BACK %i\r\n",temp);
+	rx_buffer.buffers[rx_buffer.last_write] = (char)temp;
+	rx_buffer.last_write = (rx_buffer.last_write + 1) % MAX_RX_BUFFER_LENGTH;
+}
+
+//! [setup]
+void configure_usart(void)
+{
+	//! [setup_config]
+	struct usart_config config_usart;
+	//! [setup_config]
+	//! [setup_config_defaults]
+	usart_get_config_defaults(&config_usart);
+	//! [setup_config_defaults]
+	config_usart.baudrate    = 115200;
+	config_usart.mux_setting = EDBG_CDC_SERCOM_MUX_SETTING;
+	config_usart.pinmux_pad0 = EDBG_CDC_SERCOM_PINMUX_PAD0;
+	config_usart.pinmux_pad1 = EDBG_CDC_SERCOM_PINMUX_PAD1;
+	config_usart.pinmux_pad2 = EDBG_CDC_SERCOM_PINMUX_PAD2;
+	config_usart.pinmux_pad3 = EDBG_CDC_SERCOM_PINMUX_PAD3;
+	//! [setup_change_config]
+
+	//! [setup_set_config]
+	/*while (usart_init(&cdc_instance,
+	EDBG_CDC_MODULE, &config_usart) != STATUS_OK) {
+	}*/
+	//! [setup_set_config]
+	stdio_serial_init(&cdc_instance, EDBG_CDC_MODULE, &config_usart);
+	usart_enable(&cdc_instance);
+}
+
+void configure_usart_callbacks(void)
+{
+	//! [setup_register_callbacks]
+	usart_register_callback(&cdc_instance,
+	usart_read_callback, USART_CALLBACK_BUFFER_RECEIVED);
+	//! [setup_register_callbacks]
+
+	//! [setup_enable_callbacks]
+	usart_enable_callback(&cdc_instance, USART_CALLBACK_BUFFER_RECEIVED);
+	system_interrupt_enable_global();
+	//! [setup_enable_callbacks]
+	uint8_t instance_index = _sercom_get_sercom_inst_index(cdc_instance.hw);
+	_sercom_set_handler(instance_index, usart_read_callback);
+	_sercom_instances[instance_index] = &cdc_instance;
+	cdc_instance.hw->USART.INTENSET.reg = SERCOM_USART_INTFLAG_RXC;
+}
 //! [setup]
 
 //! [cdc_setup]
@@ -85,7 +213,6 @@ static void configure_usart_cdc(void)
 static void configure_can(void)
 {
 	uint32_t i;
-
 	/* Set up the CAN TX/RX pins */
 	struct system_pinmux_config pin_config;
 	system_pinmux_get_config_defaults(&pin_config);
@@ -285,7 +412,9 @@ int main(void)
 	//uint8_t key;
 //! [setup_init]
 	system_init();
-	configure_usart_cdc();
+	configure_usart();
+	configure_usart_callbacks();
+	//configure_usart_cdc();
 //! [setup_init]
 
 //! [main_setup]
@@ -295,7 +424,8 @@ int main(void)
 
 //! [display_user_menu]
 	//display_menu();
-	printf("Starting.\r\n");
+	node_my_name = myname;
+	debug_print("Starting.\r\n");
 	struct port_config config_port_pin;
 	port_get_config_defaults(&config_port_pin);
 	config_port_pin.direction = PORT_PIN_DIR_OUTPUT;
@@ -310,11 +440,11 @@ int main(void)
 	SysTick->CTRL = 0x00000007;			// Enable SysTick, Enable SysTick Exceptions, Use CPU Clock
 	NVIC_EnableIRQ(SysTick_IRQn);		// Enable SysTick Interrupt*/
 	
-	node_my_name = myname;
 	debug_print("Hello\r\n");
 	uint32_t SID = *((uint32_t *)(0x0080A00C));
 	srand(SID);
 	InitKWIDKeyData();
+	//TODO: Test the AES ctr functions here?
 	
 #if defined(SYSTEM_ROUTER_TYPE)
 	struct network parent_net;
@@ -338,7 +468,7 @@ int main(void)
 	struct network child_net;
 	child_net.can_instance = &can0_instance;
 	child_net.buff_num = CAN0_COMM_BUFF_INDEX;
-	child_net.broadcast_buff_num = -1U;
+	child_net.broadcast_buff_num = (uint16_t)-1U;
 	child_net.rx_element_buff = CAN0_rx_element_buff;
 	node_make_parent(&child_net,my_child_info);
 	hid_get(&my_child_info->hid);
@@ -360,11 +490,11 @@ int main(void)
 	uint32_t hidToCompare = HWIDTable[1].hw_id.data;
 	if(hidToCompare == children_table[1].hid.data) {
 		orderOfRouters[0] = &children_table[1];
-		//orderOfRouters[1] = &children_table[2];
+		orderOfRouters[1] = &children_table[2];
 	}
 	else if (hidToCompare == children_table[2].hid.data) {
 		orderOfRouters[0] = &children_table[2];
-		//orderOfRouters[1] = &children_table[1];
+		orderOfRouters[1] = &children_table[1];
 	}
 	
 	for(int i = 0; i < 3; i++) {
@@ -385,7 +515,7 @@ int main(void)
 		node_make_remote_from_router(my_child_info->network, orderOfRouters[0], &devRemotes[i], &msg_naddr.addr);
 		debug_print("Entry made for %i\n",i);
 	}
-	/*for(int i = 0; i < 3; i++) {
+	for(int i = 0; i < 3; i++) {
 		// Now ask each node for all of their devices
 		struct node_msg_cap msg_cap;
 		msg_cap.cap = NodeTypes[i];
@@ -402,25 +532,156 @@ int main(void)
 
 		node_make_remote_from_router(my_child_info->network, orderOfRouters[1], &devRemotes[i+3], &msg_naddr.addr);
 		debug_print("Entry made for %i\n",i+3);
-	}*/
-	
-	/*struct node_msg_cap msg_cap;
-	msg_cap.cap = NODE_TYPE_MOTOR;
-	debug_print("Sending request as %d with cmd %d for addr of cap %d\n", my_child_info->addr.hops[0], NODE_CMD_CAP_GNAD, msg_cap.cap);
-	node_msg_send_generic(my_child_info, &children_table[1], NODE_CMD_CAP_GNAD, &msg_cap, sizeof(struct node_msg_header) + sizeof(uint32_t));
+	}
+	while (1) {
+		char input;
+		int segment_length = 0;
+		int total_length = 0;
+		int msg_type = 0;
+		int expected_length = 0;
+		int msg_failed = 0;
+		uint8_t buffer[64];
+		for (input = getchar_wrapper(); input != '\n' && input != ','; input = getchar_wrapper(), segment_length++) {
+			int value = hexchar_to_int(input);
+			//debug_print("Received character %d\n", input);
+			if (value > 15 || value < 0) {
+				break;
+			}
+			expected_length = (expected_length << 4) | hexchar_to_int(input);
+		}
+		//debug_print("Length Complete.\r\n");
+		if (input != ',') {
+			debug_print("Failed at length\n");
+			msg_failed = 1;
+		}
+		if (!msg_failed) {
+			total_length += segment_length;
+			segment_length = 0;
+			for (input = getchar_wrapper(); input != '\n' && input != ':'; input = getchar_wrapper(), segment_length++) {
+				int value = hexchar_to_int(input);
+				//debug_print("Received character %d\n", input);
+				if (value > 15 || value < 0) {
+					break;
+				}
+				msg_type = (msg_type << 4) | hexchar_to_int(input);
+			}
+			if (input != ':') {
+				debug_print("Failed at type\n");
+				msg_failed = 1;
+			}
+			//debug_print("Type Complete\r\n");
+		}
+		if (!msg_failed) {
+			total_length += segment_length;
+			segment_length = 0;
+			if (msg_type == 0) { // raw data
+				for (input = getchar_wrapper(); input != '\n'; input = getchar_wrapper(), segment_length++) {
+					int value = hexchar_to_int(input);
+					//debug_print("Received character %d\n", input);
+					if (value > 15 || value < 0) {
+						debug_print("Received invalid character %d\n", input);
+						break;
+					}
+					if (~segment_length & 1) { // if 0th byte
+						buffer[segment_length / 2] = value << 4;
+					}
+					else { // if 1st byte
+						buffer[segment_length / 2] |= value;
+					}
+				}
+			}
+			/*else if (msg_type == 1) { // print data
+				for (input = getchar(); input != '\n'; input = getchar()) {
+					int value = hexchar_to_int(input);
+					if (value > 15 || value < 0) {
+						break;
+					}
+					buffer[segment_length / 2] = input << ((~segment_length & 1) * 4);
+					length++;
+				}
+			}*/
+			else {
+				msg_failed = 1;
+			}
+			//debug_print("Data Complete\r\n");
+			//for(int i = 0; i < 999999; i++);
+			total_length += segment_length;
+			if (total_length != expected_length) {
+				debug_print("Failed because received length %d does not equal expected %d\n", total_length, expected_length);
+				msg_failed = 1;
+			}
+		}
+		while (input != '\n') {
+			input = getchar();
+		}
+		if (!msg_failed) {
+			if (msg_type == 0) { // raw data
+				struct supervisor_command* command = (void*)buffer;
+				if (command->cmd == 0) { //read
+					if (total_length != 8) {
+						debug_print("Received malformed command\n");
+						continue;
+					}
+					struct node_msg_data_addr msg_read;
+					msg_read.addr = command->read_addr;
+					debug_print("Sending request as %d with cmd %d for addr %x\n", my_child_info->addr.hops[0], NODE_CMD_READ, msg_read.addr);
+					node_msg_send(my_child_info, &devRemotes[command->endpoint], NODE_CMD_READ, &msg_read);
 
-	struct node_msg_nodeaddr msg_naddr;
-	debug_print("Waiting for naddr response\n");
-	//do {
-	//debug_print("Received cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
-	node_msg_wait(my_child_info, &msg_naddr);
-	//} while (msg_read_resp.header.cmd != NODE_CMD_READ_RESP);
-	debug_print("Received response cmd %d, addr %x:%x l:%d\n", msg_naddr.header.cmd, msg_naddr.addr.hops[0], msg_naddr.addr.hops[1], msg_naddr.addr.len);
+					struct node_msg_data_addr_value msg_read_resp;
+					//debug_print("Waiting for read response\n");
+					//do {
+						//debug_print("Received cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
+					node_msg_wait(my_child_info, &msg_read_resp);
+					//} while (msg_read_resp.header.cmd != NODE_CMD_READ_RESP);
+					//debug_print("Received response cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
 
-	struct node remote;
-	node_make_remote_from_router(my_child_info->network, &children_table[1], &remote, &msg_naddr.addr);
-	//node_make_remote_from_router(my_child_info->network, &children_table[1], &devRemotes[i], &msg_naddr.addr);
-	struct node remote = devRemotes[2];*/
+					struct supervisor_response response;
+					response.endpoint = command->endpoint;
+					response.cmd = 0;
+					response.read_addr = msg_read_resp.addr;
+					response.read_data = msg_read_resp.value;
+					printf("%01x,%01x:", (unsigned int)(uint8_t)10, (unsigned int)(uint8_t)0); // length = length (1 byte), type (1 byte), read_cmd (8 bytes) = 10 bytes
+					for (int i = 0; i < 4; i++) {
+						printf("%02x", (unsigned int)((uint8_t*)&response)[i]);
+					}
+					printf("\n");
+				}
+				else if (command->cmd == 1) { // write
+					if (total_length != 10) {
+						debug_print("Received malformed command\n");
+						continue;
+					}
+					struct node_msg_data_addr_value msg_write;
+					msg_write.addr = command->write_addr;
+					msg_write.value = command->write_data;
+					debug_print("Sending request as %d with cmd %d for addr %x, data %x\n", my_child_info->addr.hops[0], NODE_CMD_READ, msg_write.addr, msg_write.value);
+					node_msg_send(my_child_info, &devRemotes[command->endpoint], NODE_CMD_WRITE, &msg_write);
+
+					struct node_msg_data_addr msg_write_resp;
+					//debug_print("Waiting for write response\n");
+					//do {
+						//debug_print("Received cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
+					node_msg_wait(my_child_info, &msg_write_resp);
+					//} while (msg_read_resp.header.cmd != NODE_CMD_READ_RESP);
+					//debug_print("Received response cmd %d, addr %x\n", msg_write_resp.header.cmd, msg_write_resp.addr);
+
+					struct supervisor_response response;
+					response.endpoint = command->endpoint;
+					response.cmd = 1;
+					response.write_addr = msg_write_resp.addr;
+					printf("%01x,%01x:", (unsigned int)8, (unsigned int)0); // length = length (1 byte), type (1 byte), write_cmd (6 bytes) = 8 bytes
+					for (int i = 0; i < 3; i++) {
+						printf("%02x", (unsigned int)((uint8_t*)&response)[i]);
+					}
+					printf("\n");
+				}
+			}
+		}
+		else {
+			debug_print("Supervisor command interpretation failed.\n");
+		}
+	}
+	/*
 	{
 		struct node_msg_data_addr msg_read;
 		msg_read.addr = 0;
@@ -519,7 +780,7 @@ int main(void)
 		//debug_print("Received cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
 		node_msg_wait(my_child_info, &msg_read_resp);
 		//} while (msg_read_resp.header.cmd != NODE_CMD_READ_RESP);
-		debug_print("Received response cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);*/
+		debug_print("Received response cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
 		
 
 	}
@@ -599,6 +860,7 @@ int main(void)
 		//} while (msg_read_resp.header.cmd != NODE_CMD_READ_RESP);
 		debug_print("Received response cmd %d, addr %x, value %x\n", msg_read_resp.header.cmd, msg_read_resp.addr, msg_read_resp.value);
 	}
+	*/
 #elif defined(SYSTEM_ROUTER_TYPE) 
 {
 	while (1) {

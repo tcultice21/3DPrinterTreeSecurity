@@ -327,12 +327,12 @@ void node_msg_wait_any_assign(struct node* source, void* msg_buff) {
 	if(node_msg_cmd_encrypted(msg_generic->header.cmd)) {
 		uint8_t buff[56];
 		*((uint32_t *)&source->encryption_data->nonce[0]) += msg_generic->header.counter;
-		debug_print("Nonce Value given: %i\n",*((uint32_t *)&source->encryption_data->nonce[0]));
+		//debug_print("Nonce Value given: %i\n",*((uint32_t *)&source->encryption_data->nonce[0]));
 		uint32_t tempLen[2] = {0,0};
-		debug_print("Received: \n");
+		/*debug_print("Received: \n");
 		for (int i = 0; i < received-sizeof(struct node_msg_header); i++) {
 			printf("%x ", msg_generic->data[i]);
-		}
+		}*/
 		printf("\r\n");
 		if (crypto_aead_decrypt(buff,&tempLen[0],NULL,msg_generic->data,received-sizeof(struct node_msg_header),NULL,NULL,source->encryption_data->nonce,source->encryption_data->session_key)) {
 			debug_print("Decrypt Tag Failed %i, %i\n",received-sizeof(struct node_msg_header),tempLen[0]);
@@ -401,7 +401,7 @@ int node_msg_check(struct node* source, void* msg_buff) {
 		}
 		int shift = msg_generic->header.TTL * 4;
 		msg_generic->header.addr = (msg_generic->header.addr & ~(0xf << shift)) | (msg_generic->header.ret << shift);
-		debug_print("Receiving from naddr %x, ret %x\n", *((uint16_t*)&msg_generic->header.addr), msg_generic->header.ret);
+		//debug_print("Receiving from naddr %x, ret %x\n", *((uint16_t*)&msg_generic->header.addr), msg_generic->header.ret);
 		return unpaddedVal;
 	}
 	return 0;

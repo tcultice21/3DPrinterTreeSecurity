@@ -1053,7 +1053,7 @@ static inline void usart_get_config_defaults(
 {
 	/* Sanity check arguments */
 	Assert(config);
-
+	
 	/* Set default config in the config struct */
 	config->data_order       = USART_DATAORDER_LSB;
 	config->transfer_mode    = USART_TRANSFER_ASYNCHRONOUSLY;

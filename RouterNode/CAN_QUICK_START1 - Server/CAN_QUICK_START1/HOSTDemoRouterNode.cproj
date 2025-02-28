@@ -233,7 +233,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.edbg</avrtool>
-    <avrtoolserialnumber>ATML2682071800002119</avrtoolserialnumber>
+    <avrtoolserialnumber>ATML2682071800002140</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x11011420</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_edbg>
@@ -244,7 +244,7 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.edbg</ToolType>
-      <ToolNumber>ATML2682071800002119</ToolNumber>
+      <ToolNumber>ATML2682071800002140</ToolNumber>
       <ToolName>EDBG</ToolName>
     </com_atmel_avrdbg_tool_edbg>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
@@ -608,6 +608,7 @@
     <Folder Include="src\config\" />
     <Folder Include="src\FourQ" />
     <Folder Include="src\ASCON" />
+    <Folder Include="src\PQCEnc" />
     <Folder Include="src\TreeProtocol" />
     <Folder Include="src\Random" />
     <Folder Include="src\SHA512" />
@@ -676,6 +677,129 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\EncLib.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\aes.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\aes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\aesSmall.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\aesSmall.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\align.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\api.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\bearssl_block.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\brg_endian.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\cbd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\cbd.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\compat.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\crypto_declassify.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\fips202.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\fips202.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\indcpa.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\indcpa.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\KeccakP-1600-times4-SnP.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\kem.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\kem.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\nistseedexpander.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\nistseedexpander.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\ntt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\ntt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\params.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\poly.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\poly.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\polyvec.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\polyvec.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\randombytes.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\randombytes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\reduce.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\reduce.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\sha2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\sha2.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\SIMD256-config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\sp800-185.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\sp800-185.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\symmetric-shake.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\symmetric.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\verify.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\PQCEnc\verify.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\Random\random.c">

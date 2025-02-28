@@ -7,11 +7,11 @@
 #include "CANLib.h"
 
 struct can_module can0_instance;
-struct multiBuffer CAN0_rx_element_buff[NETWORK_MAX_BUFFS];
+struct multiBuffer CAN0_rx_element_buff[NETWORK_MAX_BUFFS] = {0};
 
 #ifdef SYSTEM_ROUTER_TYPE
 struct can_module can1_instance;
-struct multiBuffer CAN1_rx_element_buff[NETWORK_MAX_BUFFS];
+struct multiBuffer CAN1_rx_element_buff[NETWORK_MAX_BUFFS] = {0};
 #endif
 
 //struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
@@ -142,14 +142,9 @@ int network_start_listening(struct network* network, struct network_addr* selfAd
 // Rx receives on multiple buffers based on broadcast or not (is set up on its own)
 void network_send(struct network* network, struct network_addr* addr, uint8_t* data, size_t len) {
 	struct can_module * can_instance = network->can_instance;
-	debug_print("Network send - Message: \n");
-	for (int sex = 0; sex < len; sex++) {
-		printf("%x ",data[sex]);
-	}
-	printf("\r\n");
 	CAN_Tx(addr->CAN_addr,data,len,network->buff_num,can_instance);
 	CAN_Tx_Wait(network->buff_num,can_instance);
-	debug_print("Successfully Sent Data to ID %d.\n", addr->CAN_addr);
+	//debug_print("Successfully Sent Data to ID %d.\n", addr->CAN_addr);
 }
 
 int network_check_any(struct network* network, struct network_addr* source, uint8_t* buff, size_t len) {
@@ -165,7 +160,7 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		
 		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
-		debug_print("Network Receive - Message: \n");
+		debug_print("Network Receive - Message: ");
 		for (int sex = 0; sex < dataLen; sex++) {
 			printf("%x ",buff[sex]);
 		}
@@ -179,7 +174,7 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		
 		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
-		debug_print("Broadcast Network Receive - Message: \n");
+		debug_print("Broadcast Network Receive - Message: ");
 		for (int sex = 0; sex < dataLen; sex++) {
 			printf("%x ",buff[sex]);
 		}

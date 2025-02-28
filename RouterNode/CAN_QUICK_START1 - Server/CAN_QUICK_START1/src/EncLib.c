@@ -12,7 +12,11 @@
 //#ifdef(CANINTERFACE)
 #define TEMP_NODE_ID 1
 #define TEMP_FILTER_VAL 1
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define FLATTEN(x) ((x > 48) ? 48 : (x))
 
+
+#ifdef USE_ASCON
 struct Crypto_Data selfData = {.ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}, .child_ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}};
 
 int InitKWIDKeyData() {
@@ -54,8 +58,46 @@ int InitKWIDKeyData() {
 		photon128(secret_key,32,parentStoredKeys->router_data.response_hash);
 	#endif
 }
+#endif
+
+#ifdef USE_PQC
+struct Crypto_Data selfData = {.ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}, .child_ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}};
+int InitKWIDKeyData() {
+	// Takes the table of HWIDTable and initializes all the values (because we don't want to have to hand copy them all...
+	
+	// How the routers do it:
+	#if defined(SYSTEM_ROUTER_TYPE) || defined(SYSTEM_ROOT_ROUTER)
+	
+	// Generate the keys here.
+	PQCLEAN_KYBER512_CLEAN_crypto_kem_keypair(selfData.public_key,selfData.secret_key);
+	memcpy(selfData.parent_public_key,selfData.public_key,PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES);
+	hash_h(parentStoredKeys->router_data.response_hash,selfData.parent_public_key,PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES);
+	
+	for(int i = 1; i < NODE_TOTAL+1; i++) {
+		
+		// To save time (this isn't timed/evaluated) we'll just copy over all the responses here.
+		if(HWIDTable[i].hw_id.data == 0) continue;
+		memcpy(HWIDTable[i].router_data.response_hash,parentStoredKeys->router_data.response_hash,SHA3_256_RATE);
+	}
+	#endif
+	#ifdef SYSTEM_ENDPOINT_TYPE
+	// Generate router's public key... Think of as an "establishment phase"
+	
+	// Copy the keys over because the RNG generator is the same regardless.
+	// Only doing this to simplify the keygen process. This should be changed in production code.
+	// This makes no impact on the runtime performance of the algorithm, as we isolate this keygen from test results anyway.
+	PQCLEAN_KYBER512_CLEAN_crypto_kem_keypair(selfData.parent_public_key,selfData.secret_key);
+	memcpy(selfData.public_key,selfData.parent_public_key,PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES);
+	
+	// Generate its expected response hash
+	hash_h(parentStoredKeys->router_data.response_hash,selfData.parent_public_key,PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES);
+	//photon128(secret_key,32,parentStoredKeys->router_data.response_hash);
+	#endif
+}
+#endif
 
 // TODO: This probably doesn't need passed the nodes, just the parent and itself?
+#ifdef USE_ASCON
 int authToParent(struct node* my_parent_info, struct node* parent_info, struct node* parent_broadcast_info) {
 	struct node_msg_generic message;
 	uint8_t response[16];
@@ -96,27 +138,27 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 	}
 	photon128(selfData.shared_secret,32,selfData.shared_hash);
 	
-	debug_print("Waiting for our time in Auth.\r\n");
+	//debug_print("Waiting for our time in Auth.\r\n");
 	// Server will request a node to send its information, this data is pretty much unnecessary
 	// Wait for it.
 	while(node_msg_check(parent_info, &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
-	debug_print("Our turn in Auth.\r\n");
+	//debug_print("Our turn in Auth.\r\n");
 	//We are a router, thus we handle auth differently
 	
 	// Send encrypted response to server
 	photon128(selfData.secret_key,32,response);
 	crypto_aead_encrypt(message.data,&clen,response,RESPONSE_SIZE,NULL,NULL,NULL,selfData.ASCON_data.nonce,selfData.shared_hash);
-	debug_print("Clen = %i\n",clen);
+	//debug_print("Clen = %i\n",clen);
 	node_msg_send_generic(my_parent_info,parent_info,NODE_CMD_AUTH_PLN,&message,clen);
 	// If this auth fails, the server will not be sending anything else and we will be stuck.
 	
 	// Server will then share its encrypted hash to verify the other way around too.
 	while(node_msg_check(parent_info, &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
-	debug_print("Enc Response: \n");
+	/*debug_print("Enc Response: \n");
 	for (int sex = 0; sex < message.header.len-8; sex++) {
 		printf("%x ",message.data[sex]);
 	}
-	printf("\r\n");
+	printf("\r\n");*/
 	crypto_aead_decrypt(response,&mlen,NULL,message.data,message.header.len-8,NULL,NULL,selfData.ASCON_data.nonce,selfData.shared_hash);
 	if (memcmp(response,parentStoredKeys->router_data.response_hash,16) != 0) {
 		// TODO: Find out if this PUF response matches when encrypted
@@ -145,17 +187,26 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 		exit(2);
 	}
 	memcpy(selfData.ASCON_data.session_key,response,16);
-	debug_print("Generated Session Key: \n");
+	/*debug_print("Generated Session Key: \n");
 	for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
 		printf("%x ",selfData.ASCON_data.session_key[sex]);
 	}
-	printf("\r\n");
+	printf("\r\n");*/
 	
 	// Receive broadcast saying init is over, time for GO (because you are a router, your next step will be to do the server-side yourself)
 	while(node_msg_check(parent_broadcast_info, &message) == 0);
 	debug_print("Completed Parent's Authentication\n");
 }
+#endif
 
+#ifdef USE_PQC
+int authToParent(struct node* my_parent_info, struct node* parent_info, struct node* parent_broadcast_info) {
+	return 0;
+}
+#endif
+
+// ASCON-based Authentication to Children
+#ifdef USE_ASCON
 int authToChildren(struct node * nodes, int nodeLen, struct node* my_child_info, struct node* child_broadcast_info) {
 	struct node_msg_generic message;
 	uint8_t response[16];
@@ -227,13 +278,13 @@ int authToChildren(struct node * nodes, int nodeLen, struct node* my_child_info,
 			if(memcmp(response,thisNode->router_data.response_hash,16) != 0) {
 				printf("Warning: Node HID %i failed the response test.\r\n",hw_id);
 				debug_print("Expected Response: \n");
-				for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
-					printf("%x ",thisNode->router_data.response_hash[sex]);
+				for (int j = 0; j < RESPONSE_SIZE; j++) {
+					printf("%x ",thisNode->router_data.response_hash[j]);
 				}
 				printf("\r\n");
 				debug_print("Received Response: \n");
-				for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
-					printf("%x ",response[sex]);
+				for (int j = 0; j < RESPONSE_SIZE; j++) {
+					printf("%x ",response[j]);
 				}
 				printf("\r\n");
 				continue;
@@ -286,6 +337,159 @@ int authToChildren(struct node * nodes, int nodeLen, struct node* my_child_info,
 	node_msg_send_generic(my_child_info,child_broadcast_info,NODE_CMD_AUTH_PLN,&message,12);
 	debug_print("Completed Our Authentication\n");
 }
+#endif
+
+#ifdef USE_PQC
+int authToChildren(struct node * nodes, int nodeLen, struct node* my_child_info, struct node* child_broadcast_info) {
+	struct node_msg_generic message;
+	uint8_t response[PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES+PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES];
+	uint8_t decrypt[64];
+	// This node's public key is stored in selfData.
+	// We need a place to store the child's public key.
+	// I won't be implementing a timeout on this. If they're not all there, I don't want it.
+	
+	/*
+	KEM-based Authentication (Router to Router):
+	1) Child sends Public Key to Server alongside encapsulated challenge 1 using Server's Public Key
+	2) Server hashes Child's Public Key, Checks to it's known value to ensure it matches (is this necessary, we should use)
+	3) Encapsulates a random key value and transmits the challenge 2 to the Child
+	4) Decrypted keys are XOR'ed together, establishing a shared key made from both parties (should this be more rigid? Hashing maybe? Look into it perhaps)
+	5) A challenge-response is created that will validate the authenticity of both sides using XOR'ed shared key w/ AES
+	- If either device sends an invalid response, neither side should accept the other
+	- Child starts first (See next step and it'll explain why)
+	- Server's response will also contain a 32-byte sequence of the session key that will be used for local subnet communication
+
+	KEM-based Authentication (Router to Device)(No Device Authentication Needed):
+	1) Child sends encapsulated challenge 1 using Server's Public Key (is child public key even needed here?)
+	2) Server decrypts and uses encapsulated challenge as session key
+	3) Server transmits a known cipher text using AES w/ the session key decapsulated from step 1 (Also could just decapsulate and send I guess?)
+	4) Child validates the server's authenticity by validating that the ciphertext was correct
+	5) Server transmits 32-bytes to child containing the session key used for that local subnet communication (either in same message or different one)
+	*/
+	ECCRYPTO_STATUS Status;
+	// Create the overall session key NOW
+	memset(selfData.child_ASCON_data.session_key,HARDWARE_ID_VAL,AES256_KEYBYTES);
+	
+	// For each child node in the list.
+	for(int i = 1; i < nodeLen; i++) {
+		
+		// Gather context information about HID's device.
+		uint32_t hw_id = nodes[i].hid.data;
+		struct HWID_Table_Entry * thisNode = NULL;
+		for(int j = 1; j < NODE_TOTAL+1; j++) {
+			if(hw_id == HWIDTable[j].hw_id.data) {
+				thisNode = &HWIDTable[j];
+				debug_print("Node %i: Found on entry %i w/ HW_ID %i (%i)\n",i,j,hw_id,HWIDTable[j].hw_id.data);
+				break;
+			}
+		}
+		if (thisNode == NULL) {
+			printf("Warning: Found device HID %i not registered in HWID system.\r\n",hw_id);
+			continue;
+		}
+		
+		// Tell child it's their turn.
+		memset(message.data,1,12);
+		node_msg_send_generic(my_child_info,&nodes[i],NODE_CMD_AUTH_PLN,&message,12);
+		
+		// Node type is router
+		if (nodes[i].type == NODE_TYPE_ROUTER) {
+			// Child will send public key to Server alongside encapsulated challenge 1 using Server's Public Key.
+			for(int j = 0; j < PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES+PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES; j += 48) {
+				while(node_msg_check(&nodes[i], &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
+				memcpy(&response[j],message.data,FLATTEN(PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES+PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES-j));//MAX((PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES+PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES-j)%48,48));
+			}
+		
+			// Server hashes Child's Public Key, Checks to it's known value to ensure it matches
+			// Can probably just hash using SHA256.
+			uint8_t hashOutput[SHA3_256_RATE];
+			hash_h(hashOutput,response,PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES);
+			if(memcmp(hashOutput,thisNode->router_data.response_hash,SHA3_256_RATE)) {
+				// Comparison of hashes failed. This Public key is not correct.
+				debug_print("Failed comparison of hashes on HID device %i.\r",hw_id);
+				continue;
+			}
+		
+			// Decrypt and store message if everything goes okay here.
+			PQCLEAN_KYBER512_CLEAN_crypto_kem_dec(decrypt,&response[PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES],selfData.secret_key);
+			
+			//Encapsulates a random key value and transmits the challenge 2 to the Child
+			for(int j = 0; j < AES256_KEYBYTES; j++) {
+				selfData.shared_secret[j] = hw_id;
+			}
+			PQCLEAN_KYBER512_CLEAN_crypto_kem_enc(&response[PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES],selfData.shared_secret,&response[0]);
+			
+			// Transmit it back to the Child.
+			for(int j = 0; j < PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES; j+=48) {
+				memcpy(message.data,&response[PQCLEAN_KYBER512_CLEAN_CRYPTO_PUBLICKEYBYTES+j],FLATTEN(PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES-j));
+				node_msg_send_generic(my_child_info,&nodes[i],NODE_CMD_AUTH_PLN,&message,FLATTEN(PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES-j));
+			}
+			
+			// XOR the keys generated by both sides together
+			for(int j = 0; j < AES256_KEYBYTES; j++) {
+				selfData.shared_secret[j] ^= decrypt[j];
+			}
+			
+			// receive the challenge
+			while(node_msg_check(&nodes[i], &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
+			// CTR mode is reversible, use that AES, remember to init, maybe make wrapper function(?), make sure to stop adding the counter to the IV (its its own thing now), use it separately.
+			// TODO Above.
+			// Decrypt
+			
+			// Return the challenge, return a session key to use
+			// Return enc(16B-challenge || session_key) = 48B
+			memcpy(message.data,decrypt,16);
+			memcpy(&message.data[16],selfData.child_ASCON_data.session_key,AES256_KEYBYTES);
+			node_msg_send_generic(my_child_info,&nodes[i],NODE_CMD_AUTH_PLN,&message,48);
+			
+			// Done?
+			
+		}
+		// Node type is a endpoint
+		else if (nodes[i].type != NODE_TYPE_NONE) {
+			/*
+			KEM-based Authentication (Router to Device)(No Device Authentication Needed):
+			1) Child sends encapsulated challenge 1 using Server's Public Key (is child public key even needed here, no?)
+			2) Server decrypts and uses encapsulated challenge as session key
+			3) Server transmits a known cipher text using AES w/ the session key decapsulated from step 1 (Also could just decapsulate and send I guess?)
+			4) Child validates the server's authenticity by validating that the ciphertext was correct
+			5) Server transmits 32-bytes to child containing the session key used for that local subnet communication (either in same message or different one)
+			*/	
+		
+			// Skipping Child Sends public key, just encapsulated challenge
+			// Receive the encapsulated challenge 1
+			for(int j = 0; j < PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES; j += 48) {
+				while(node_msg_check(&nodes[i], &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
+				memcpy(&response[j],message.data,FLATTEN(PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES-j));
+			}
+			
+			// Server decrypts and uses encapsulated challenge as challenge key
+			// using the space for &response[CIPHERTEXTBYTES] as buffer space
+			PQCLEAN_KYBER512_CLEAN_crypto_kem_dec(&response[PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES],&response[0],selfData.secret_key);
+			
+			// Transmit back enc(challenge[0:15] || session_key)
+			memcpy(decrypt,&response[PQCLEAN_KYBER512_CLEAN_CRYPTO_CIPHERTEXTBYTES],16);
+			memcpy(&decrypt[16],selfData.child_ASCON_data.session_key,AES256_KEYBYTES);
+			// AES Encrypt 48 bytes of information
+			
+			node_msg_send_generic(my_child_info,&nodes[i],NODE_CMD_AUTH_PLN,&message,48);
+			
+			//If the child accepts the server, he will use the session key provided.
+			// If not, he "should" error out and say something to us (when we handle non-static number of nodes, sure)
+			
+		}
+		else {
+			printf("Warning: Node HID %i registered as type None.\r\n",hw_id);
+			continue;
+		}
+	}
+	
+	//Send broadcast saying init is over, and it's time to go.
+	memset(message.data,1,12);
+	node_msg_send_generic(my_child_info,child_broadcast_info,NODE_CMD_AUTH_PLN,&message,12);
+	debug_print("Completed Our Authentication\n");
+};
+#endif
 
 /* struct HWID_Table_Entry {
 struct hardware_id;
@@ -342,13 +546,13 @@ struct hardware_id {
 				.hw_id = {.data = ROUTER_0A_HWID} // Parent - Router 0A
 			},
 			{
-				.hw_id = {.data = EP_2A_MOTOR_HWID} // Child 1 - Device A's Motor
+				.hw_id = {.data = EP_2B_MOTOR_HWID} // Child 1 - Device B's Motor
 			},
 			{
-				.hw_id = {.data = EP_2A_FAN_HWID} // Child 2 - Device A's Fan
+				.hw_id = {.data = EP_2B_FAN_HWID} // Child 2 - Device B's Fan
 			},
 			{
-				.hw_id = {.data = EP_2A_TSENS_HWID} // Child 3 - Device
+				.hw_id = {.data = EP_2B_TSENS_HWID} // Child 3 - Device
 			}
 		};
 		struct HWID_Table_Entry * parentStoredKeys = &HWIDTable[0];
