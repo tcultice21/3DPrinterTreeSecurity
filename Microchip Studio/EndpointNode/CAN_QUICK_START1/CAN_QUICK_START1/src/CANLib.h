@@ -26,6 +26,12 @@ extern char* node_my_name;
 #define PARENT_NODE_ID 0
 #define BROADCAST_ID (uint16_t)-1U
 
+#define NODE_TYPE_NONE_T 0
+#define NODE_TYPE_ROUTER_T 1
+#define NODE_TYPE_MOTOR_T 2
+#define NODE_TYPE_FAN_T 3
+#define NODE_TYPE_TSENS_T 4
+
 ///// PICK ONE /////
 //    #define ROUTER_0A
 //    #define SYSTEM_ROOT_ROUTER
@@ -58,7 +64,7 @@ extern char* node_my_name;
 ////////////////////
 #define EP_2B_TSENS
 #define SYSTEM_ENDPOINT_TYPE
-#define SYSTEM_NODE_TYPE 4
+#define SYSTEM_NODE_TYPE NODE_TYPE_TSENS_T
 /////////////////////////////////
 
 

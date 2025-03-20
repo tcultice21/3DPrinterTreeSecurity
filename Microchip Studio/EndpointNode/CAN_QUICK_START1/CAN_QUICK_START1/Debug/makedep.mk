@@ -2,6 +2,8 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\Prf_endpoint.c
+
 src\TreeProtocol\node.c
 
 src\ASF\sam0\drivers\tc\tc_interrupt.c

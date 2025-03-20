@@ -15,6 +15,7 @@
 #include <string.h>
 #include <asf.h>
 #include <stdbool.h>
+#include "Prf_endpoint.h"
 
 //! [definition_pwm]
 /** PWM module to use */
@@ -46,5 +47,22 @@ int mot_get_dir(void);
 int mot_en_get(void);
 int mot_moveLoc_get(void);
 int mot_currPos_get(void);
+
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
+#pragma message "Motor: " XSTR(SYSTEM_NODE_TYPE)
+#pragma message "Motor: " XSTR(NODE_TYPE_MOTOR_T)
+
+#if SYSTEM_NODE_TYPE == 2
+	#pragma message ( "Motor" )
+dev_cap_structure cap_callback_ref = {
+	.status_cb_get = &mot_currPos_get,
+	.status_cb_get_alt = &mot_moveLoc_get,
+	.write_cb_set = &mot_move_to_loc,
+	.write_cb_toggle = &def_cb_nodef_void,
+	
+};
+#endif
 
 #endif /* MOTORLIB_H_ */

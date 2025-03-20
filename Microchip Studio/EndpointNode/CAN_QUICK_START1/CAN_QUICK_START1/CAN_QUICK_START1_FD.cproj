@@ -670,6 +670,12 @@
     <Folder Include="src\Photon" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Prf_endpoint.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Prf_endpoint.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\TreeProtocol\node.c">
       <SubType>compile</SubType>
     </Compile>

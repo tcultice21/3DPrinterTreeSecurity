@@ -166,7 +166,7 @@ src/qs_can_basic.d src/qs_can_basic.o: ../src/qs_can_basic.c ../src/asf.h \
  ../src/ASCON/constants.h ../src/TreeProtocol/node.h ../src/CANLib.h \
  ../src/EncLib.h ../src/FourQ/FourQ_api.h ../src/FourQ/FourQ.h \
  ../src/Photon/photon.h ../src/EPPeripherals.h ../src/MotorLib.h \
- ../src/FanLib.h ../src/TempLib.h
+ ../src/Prf_endpoint.h ../src/FanLib.h ../src/TempLib.h
 
 ../src/asf.h:
 
@@ -535,6 +535,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/EPPeripherals.h:
 
 ../src/MotorLib.h:
+
+../src/Prf_endpoint.h:
 
 ../src/FanLib.h:
 

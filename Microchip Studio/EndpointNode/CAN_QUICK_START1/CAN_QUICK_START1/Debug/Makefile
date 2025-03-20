@@ -110,6 +110,7 @@ SUBDIRS :=  \
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../src/Prf_endpoint.c \
 ../src/TreeProtocol/node.c \
 ../src/ASF/sam0/drivers/tc/tc_interrupt.c \
 ../src/ASF/sam0/drivers/tc/tc_sam_l_c/tc.c \
@@ -160,6 +161,7 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+src/Prf_endpoint.o \
 src/TreeProtocol/node.o \
 src/ASF/sam0/drivers/tc/tc_interrupt.o \
 src/ASF/sam0/drivers/tc/tc_sam_l_c/tc.o \
@@ -203,6 +205,7 @@ src/Photon/photon.o \
 src/qs_can_basic.o
 
 OBJS_AS_ARGS +=  \
+src/Prf_endpoint.o \
 src/TreeProtocol/node.o \
 src/ASF/sam0/drivers/tc/tc_interrupt.o \
 src/ASF/sam0/drivers/tc/tc_sam_l_c/tc.o \
@@ -246,6 +249,7 @@ src/Photon/photon.o \
 src/qs_can_basic.o
 
 C_DEPS +=  \
+src/Prf_endpoint.d \
 src/TreeProtocol/node.d \
 src/ASF/sam0/drivers/tc/tc_interrupt.d \
 src/ASF/sam0/drivers/tc/tc_sam_l_c/tc.d \
@@ -289,6 +293,7 @@ src/Photon/photon.d \
 src/qs_can_basic.d
 
 C_DEPS_AS_ARGS +=  \
+src/Prf_endpoint.d \
 src/TreeProtocol/node.d \
 src/ASF/sam0/drivers/tc/tc_interrupt.d \
 src/ASF/sam0/drivers/tc/tc_sam_l_c/tc.d \
@@ -346,6 +351,13 @@ LINKER_SCRIPT_DEP+=  \
 
 
 # AVR32/GNU C Compiler
+src/Prf_endpoint.o: ../src/Prf_endpoint.c
+	@echo Building file: $<
+	@echo Invoking: ARM/GNU C Compiler : 6.3.1
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAMC21J18A__ -DDEBUG -DUSART_CALLBACK_MODE=true -D__SAMC21J18A__ -DBOARD=SAMC21_XPLAINED_PRO -DARM_MATH_CM0PLUS=true -DSYSTICK_MODE -DTSENS_CALLBACK_MODE=true -DTC_ASYNC=true  -I"../src/ASF/sam0/boards" -I"../src/ASF/sam0/boards/samc21_xplained_pro" -I"../src/ASF/sam0/utils/cmsis/samc21/include" -I"../src/ASF/sam0/utils/cmsis/samc21/source" -I"../src/ASF/sam0/utils" -I"../src/ASF/sam0/utils/header_files" -I"../src/ASF/sam0/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/common/utils" -I"../src/ASF/common/boards" -I"../src/ASF/sam0/drivers/port" -I"../src/ASF/sam0/drivers/system/pinmux" -I"../src/ASF/sam0/drivers/can" -I"../src/ASF/sam0/drivers/system" -I"../src/ASF/sam0/drivers/system/clock" -I"../src/ASF/sam0/drivers/system/clock/clock_samc20_c21" -I"../src/ASF/sam0/drivers/system/interrupt" -I"../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samc20_c21" -I"../src/ASF/sam0/drivers/system/power" -I"../src/ASF/sam0/drivers/system/power/power_sam_c" -I"../src/ASF/sam0/drivers/system/reset" -I"../src/ASF/sam0/drivers/system/reset/reset_sam_c" -I"../src/ASF/sam0/drivers/sercom/usart" -I"../src/ASF/sam0/drivers/sercom" -I"../src/ASF/sam0/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial" -I"../src" -I"../src/config" -I"../src/ASF/common2/services/delay" -I"../src/ASF/common2/services/delay/sam0" -I"../src/ASF/sam0/drivers/tsens" -I"../src/ASF/sam0/drivers/tc" -I"../src/ASF/sam0/drivers/tc/tc_sam_l_c"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
 src/TreeProtocol/node.o: ../src/TreeProtocol/node.c
 	@echo Building file: $<
 	@echo Invoking: ARM/GNU C Compiler : 6.3.1

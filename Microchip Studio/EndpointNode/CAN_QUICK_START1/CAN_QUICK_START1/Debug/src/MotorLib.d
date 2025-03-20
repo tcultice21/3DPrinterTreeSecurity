@@ -162,7 +162,7 @@ src/MotorLib.d src/MotorLib.o: ../src/MotorLib.c ../src/MotorLib.h \
  ../src/ASF/sam0/drivers/tc/tc_interrupt.h \
  ../src/ASF/sam0/drivers/tc/tc.h ../src/ASF/sam0/drivers/tsens/tsens.h \
  ../src/ASF/sam0/drivers/tsens/tsens_callback.h \
- ../src/ASF/sam0/drivers/tsens/tsens.h
+ ../src/ASF/sam0/drivers/tsens/tsens.h ../src/Prf_endpoint.h
 
 ../src/MotorLib.h:
 
@@ -501,3 +501,5 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/sam0/drivers/tsens/tsens_callback.h:
 
 ../src/ASF/sam0/drivers/tsens/tsens.h:
+
+../src/Prf_endpoint.h:

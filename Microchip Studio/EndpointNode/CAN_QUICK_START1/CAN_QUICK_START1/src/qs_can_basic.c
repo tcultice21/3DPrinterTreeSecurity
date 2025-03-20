@@ -46,6 +46,8 @@
 //! [module_inst]
 static struct usart_module cdc_instance;
 static struct can_module can_instance;
+
+//extern dev_cap_structure cap_callback_ref;
 //! [module_inst]
 
 //! [module_var]
@@ -99,13 +101,12 @@ static void configure_can(void)
 void CAN0_Handler(void) {
 	volatile uint32_t rx_buffer_index;
 	volatile uint32_t status = can_read_interrupt_status(&can0_instance);
-	//printf("Status = %i, Pubkey[2][6] = %02x",status,StoredPublicKeys[2][6]);
 
 	if ((status & CAN_PROTOCOL_ERROR_ARBITRATION)
 	|| (status & CAN_PROTOCOL_ERROR_DATA)) {
 		can_clear_interrupt_status(&can0_instance, CAN_PROTOCOL_ERROR_ARBITRATION
 		| CAN_PROTOCOL_ERROR_DATA);
-		//printf("Protocol error, please double check the clock in two boards. \r\n\r\n");
+		printf("Protocol error, please double check the clock in two boards. \r\n\r\n");
 	}
 
 	else if (status & CAN_RX_BUFFER_NEW_MESSAGE) {
@@ -118,16 +119,6 @@ void CAN0_Handler(void) {
 				can_get_rx_buffer_element(&can0_instance, &(CAN0_rx_element_buff[rx_buffer_index].buffers[temp_Buff]),
 				rx_buffer_index);
 				CAN0_rx_element_buff[rx_buffer_index].last_write = (temp_Buff + 1) % NETWORK_MAX_BUFFER_ELEMENTS;
-				
-				// 				if (rx_element_buff[rx_buffer_index].buffers[temp_Buff].R0.bit.XTD) {
-				//  					printf("\n\r Extended message received in Rx buffer. The received data is: \r\n");
-				//  					} else {
-				//  					printf("\n\r Standard message received in Rx buffer %d, section %d. The received data is: \r\n",rx_buffer_index,temp_Buff);
-				//  				}
-				//  				for (i = 0; i < rx_element_buff[rx_buffer_index].buffers[temp_Buff].R1.bit.DLC; i++) {
-				//  					printf("  %d",rx_element_buff[rx_buffer_index].buffers[temp_Buff].data[i]);
-				//  				}
-				//  				printf("\r\n\r\n");
 			}
 		}
 	}
@@ -286,89 +277,40 @@ while (1) {
 					struct node_msg_data_addr* msg_read = (void*)&msg;
 					debug_print("Received read request from %d for addr %x\n", msg_read->header.ret, msg_read->addr);
 					uint32_t result;
-					if (SYSTEM_NODE_TYPE == NODE_TYPE_MOTOR) {
-						switch (msg_read->addr) {
-							case 0:
-							result = mot_currPos_get();
+					switch(msg_read->addr) {
+						case CB_VAL_STATUS:
+							result = (cap_callback_ref.status_cb_get)();
 							break;
-							case 1:
-							result = mot_moveLoc_get();
+						case CB_VAL_STATUS_ALT:
+							result = (cap_callback_ref.status_cb_get_alt)();
 							break;
-							case 2:
+						case CB_TEST:
 							result = test_val;
-							break;
-						}
-					}
-					else if (SYSTEM_NODE_TYPE == NODE_TYPE_FAN) {
-						switch (msg_read->addr) {
-							case 0:
-							result = get_fan_state();
-							break;
-							case 1:
-							result = test_val;
-							break;
-						}
-					}
-					else if (SYSTEM_NODE_TYPE == NODE_TYPE_TSENS) {
-						switch (msg_read->addr) {
-							case 0:
-							result = tsens_get_temp();
-							break;
-							case 1:
-							result = get_tsens_offset();
-							break;
-							case 2:
-							result = test_val;
-							break;
-						}
-					}
-					struct node source;
-					node_make_source_from_msg(my_parent_info->network, &source, parent_table, parent_num_nodes, msg_read);
-
-					struct node_msg_data_addr_value msg_read_resp;
-					msg_read_resp.addr = msg_read->addr;
-					msg_read_resp.value = result;
-					debug_print("Sending response to %d, addr %x, data %x\n", msg_read->header.ret, msg_read_resp.addr, msg_read_resp.value);
-					node_msg_send(my_parent_info, &source, NODE_CMD_READ_RESP, &msg_read_resp);
-					break;
 				}
+				struct node source;
+				node_make_source_from_msg(my_parent_info->network, &source, parent_table, parent_num_nodes, msg_read);
+
+				struct node_msg_data_addr_value msg_read_resp;
+				msg_read_resp.addr = msg_read->addr;
+				msg_read_resp.value = result;
+				debug_print("Sending response to %d, addr %x, data %x\n", msg_read->header.ret, msg_read_resp.addr, msg_read_resp.value);
+				node_msg_send(my_parent_info, &source, NODE_CMD_READ_RESP, &msg_read_resp);
+				break;
+			}
 				
 				case NODE_CMD_WRITE: {
 					struct node_msg_data_addr_value* msg_write = (void*)&msg;
 					debug_print("Received write request from %d for addr %x, data %x\n", msg_write->header.ret, msg_write->addr, msg_write->value);
 					uint32_t result;
-					if (SYSTEM_NODE_TYPE == NODE_TYPE_MOTOR) {
-						switch (msg_write->addr) {
-							case 0:
-							mot_move_to_loc(msg_write->value);
-							break;
-							case 1:
-							result = test_val;
-							break;
-						}
-					}
-					else if (SYSTEM_NODE_TYPE == NODE_TYPE_FAN) {
-						switch (msg_write->addr) {
-							case 0:
-							set_fan_state(msg_write->value);
-							break;
-							case 1:
-							toggle_fan();
-							break;
-							case 2:
-							result = test_val;
-							break;
-						}
-					}
-					else if (SYSTEM_NODE_TYPE == NODE_TYPE_TSENS) {
-						switch (msg_write->addr) {
-							case 0:
-							set_tsens_offset(msg_write->value);
-							break;
-							case 1:
-							result = test_val;
-							break;
-						}
+					switch(msg_write->addr) {
+						case CB_VAL_STATUS:
+						(cap_callback_ref.write_cb_set)(msg_write->value);
+						break;
+						case CB_VAL_STATUS_ALT:
+						(cap_callback_ref.write_cb_toggle)();
+						break;
+						case CB_TEST:
+						result = test_val;
 					}
 					struct node source;
 					node_make_source_from_msg(my_parent_info->network, &source, parent_table, parent_num_nodes, msg_write);
@@ -383,35 +325,6 @@ while (1) {
 		}
 	}
 }
-
-// Turn on relevant device
-//initTSENS();
-//initFan();
-//initMotor();
-//toggle_fan();
-/*
-char c[15];
-printf("Waiting for signal...");
-scanf("%c", &c);
-
-printf("Starting.\r\n");
-mot_move_to_loc(RESET_LOCATION_VALUE+10);
-while(1) {
-	scanf("%s", &c);
-	//
-	mot_move_to_loc(currLocationY+atoi(c));
-	printf("currLocationY: %i\r\n",currLocationY);
-	printf("moveLocation: %i\r\n",moveDestinationY);
-	printf("Direction pin: %i\r\n",mot_get_dir());
-	printf("Enable pin: %i\r\n",mot_en_get());
-}*/
-//toggle_fan();
-//testCode();
-
-/*while(1) {
-	printf("Value read: %i\r\n",tsens_get_temp());
-}*/
-
 
 //! [main_loop]
 
