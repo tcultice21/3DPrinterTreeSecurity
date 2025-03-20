@@ -1,5 +1,5 @@
 # HOST-TreeSecurity
-## Built for SAMC21 Microcontrollers (Currently)
+## Built for SAMC21 Microcontrollers (Currently planning generalization to any MCU)
 
 3D Printing Security design featuring the CAN bus. Capable of being both a farm network and internal 3D printer communication protocol with hierarchical-based, root-of-trust. Can use post-quantum or lightweight cryptography.
 
