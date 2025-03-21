@@ -102,7 +102,7 @@ void configure_tc(void)
 	tc_get_config_defaults(&config_tc);
 	//! [setup_config_defaults]
 	config_tc.clock_prescaler = TC_CLOCK_PRESCALER_DIV1;
-	//config_tc.clock_source = GCLK_GENERATOR_2;
+	
 	//! [setup_change_config]
 	config_tc.counter_size    = TC_COUNTER_SIZE_16BIT;
 	config_tc.wave_generation = TC_WAVE_GENERATION_MATCH_FREQ;
@@ -117,25 +117,19 @@ void configure_tc(void)
 
 	//! [setup_set_config]
 	tc_init(&tc_instance, PWM_MODULE, &config_tc);
-	//tc_set_top_value(&tc_instance,0xFF);
 	//! [setup_set_config]
 
-	//! [setup_enable]
-	//tc_enable(&tc_instance); <-- We won't do this until we're ready
-	//! [setup_enable]
 }
 
 //! Motor direct actions (probably not for user space)
 void motor_shut_off(void) {
 	tc_stop_counter(&tc_instance);
 	motor_state = MOTOR_STATE_IDLE;
-	//mot_enable = 1; // TODO: Double check what's enable but we shouldn't be turning this off according to snapmaker
 }
 
 void motor_turn_on(void) {
 	tc_start_counter(&tc_instance);
 	motor_state = MOTOR_STATE_MOVING;
-	//mot_enable = 0; // Should already be this
 }
 
 //! [callback_funcs]
@@ -163,9 +157,6 @@ struct tc_module *const module_inst)
 	else {
 		i++;
 	}
-	//tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0xFFF);
-	//i += 16;
-	//tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, i + 1);
 }
 
 void configure_tc_callbacks(void)
@@ -197,7 +188,7 @@ int initMotor(void) {
 	currLocationY = RESET_LOCATION_VALUE;
 	moveDestinationY = RESET_LOCATION_VALUE;
 	mot_dir_set(DOWN);
-	mot_en_enable(); // TODO double check this is init'ed to "turn on motor"
+	mot_en_enable();
 	motor_state = MOTOR_STATE_IDLE;
 	tc_enable(&tc_instance);
 	motor_shut_off();
@@ -237,7 +228,7 @@ int mot_move_to_loc(uint16_t location) {
 	
 	// Set the direction
 	if (currLocationY < location) {
-		mot_dir_set(DOWN); // Double check this is right!!!
+		mot_dir_set(DOWN); 
 	}
 	else {
 		mot_dir_set(UP);

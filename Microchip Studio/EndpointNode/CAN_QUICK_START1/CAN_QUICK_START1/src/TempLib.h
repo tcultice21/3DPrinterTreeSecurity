@@ -22,6 +22,7 @@ extern int32_t tsens_result;
 
 extern struct tsens_module tsens_instance;
 extern volatile bool tsens_read_done;
+
 // functions
 int initTSENS(void);
 int tsens_get_temp(void);

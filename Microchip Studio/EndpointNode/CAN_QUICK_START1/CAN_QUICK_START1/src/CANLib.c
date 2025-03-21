@@ -14,7 +14,6 @@ struct can_module can1_instance;
 struct multiBuffer CAN1_rx_element_buff[NETWORK_MAX_BUFFS];
 #endif
 
-//struct multiBuffer rx_element_buff[CONF_CAN0_RX_BUFFER_NUM];
 
 uint8_t * CAN_Rx(uint16_t idVal, int bufferNum, struct can_module * can_inst) {
 	struct can_standard_message_filter_element sd_filter;
@@ -103,28 +102,10 @@ int CAN_Tx_Raw(uint16_t idVal, struct can_tx_element * tx_element, uint32_t data
 
 int CAN_Tx(uint16_t idVal, uint8_t *data, uint32_t dataLen, int buffer, struct can_module * can_inst) {
 	struct can_tx_element tx_element;
-	/*if (dataLen > 56 || dataLen < 8 || dataLen % 8 != 0) {
-		printf("WARNING: CAN_Tx received value of %d",dataLen);
-	}*/
 	
 	memset(tx_element.data,0,64);
 	memcpy(tx_element.data,data,dataLen);
 	return CAN_Tx_Raw(idVal,&tx_element,dataLen,buffer,can_inst);
-	
-	/*can_get_tx_buffer_element_defaults(&tx_element);
-	tx_element.T0.reg |= CAN_TX_ELEMENT_T0_STANDARD_ID(idVal);
-	tx_element.T1.reg = CAN_TX_ELEMENT_T1_FDF | CAN_TX_ELEMENT_T1_BRS |
-	CAN_TX_ELEMENT_T1_DLC(num_to_CAN(dataLen));
-	memset(&(tx_element.data[dataLen]),0,map[num_to_CAN(dataLen)]-dataLen);
-	memcpy(tx_element.data,data,dataLen);
-	//printf("Transmitting: ");
-	//for (int i = 0; i < len; i++) printf("%02x",tx_element.data[i]);
-	//printf("\r\n");
-	can_set_tx_buffer_element(can_inst, &tx_element,
-	buffer);
-	can_tx_transfer_request(can_inst, 1 << buffer);
-	while(!(can_tx_get_transmission_status(can_inst) & (1 << buffer)));
-	can_enable_interrupt(can_inst, CAN_TX_EVENT_FIFO_NEW_ENTRY);*/
 }
 
 int network_start_listening(struct network* network, struct network_addr* selfAddr) {
@@ -154,7 +135,6 @@ void network_send(struct network* network, struct network_addr* addr, uint8_t* d
 
 int network_check_any(struct network* network, struct network_addr* source, uint8_t* buff, size_t len) {
 	(void)source;
-	//struct node_msg_generic structBuf;
 	unsigned long mlen;
 	
 	
@@ -163,13 +143,13 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		struct can_rx_element_buffer * message = getNextBufferElement(&(network->rx_element_buff[network->buff_num]));
 		uint8_t dataLen = ((DLC_to_Val(message->R1.bit.DLC) < len) ? DLC_to_Val(message->R1.bit.DLC) : len);
 		
-		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
+		debug_print("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
 		debug_print("Network Receive - Message: \n");
 		for (int sex = 0; sex < dataLen; sex++) {
-			printf("%x ",buff[sex]);
+			debug_print("%x ",buff[sex]);
 		}
-		printf("\r\n");
+		debug_print("\r\n");
 		return dataLen;
 	}
 	else if (network->broadcast_buff_num != (uint16_t)-1U && network->rx_element_buff[network->broadcast_buff_num].last_read != network->rx_element_buff[network->broadcast_buff_num].last_write) {
@@ -177,7 +157,7 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		struct can_rx_element_buffer * message = getNextBufferElement(&(network->rx_element_buff[network->broadcast_buff_num]));
 		uint8_t dataLen = ((DLC_to_Val(message->R1.bit.DLC) < len) ? DLC_to_Val(message->R1.bit.DLC) : len);
 		
-		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
+		debug_print("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
 		debug_print("Broadcast Network Receive - Message: \n");
 		for (int sex = 0; sex < dataLen; sex++) {

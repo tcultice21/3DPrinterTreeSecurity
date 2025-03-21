@@ -15,7 +15,7 @@
 struct Crypto_Data selfData = {.ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}, .child_ASCON_data = {.nonce = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}}};
 
 int InitKWIDKeyData() {
-	// Takes the table of HWIDTable and initializes all the values (because we don't want to have to hand copy them all...
+	// Takes the table of HWIDTable and initializes all the values
 	uint8_t secret_key[32];
 	//Create your secret key.
 	memset(selfData.secret_key,HARDWARE_ID_VAL,32);
@@ -53,7 +53,6 @@ int InitKWIDKeyData() {
 	#endif
 }
 
-// TODO: This probably doesn't need passed the nodes, just the parent and itself?
 // WHEN COPYING DO NOT OVERWRITE THE OTHER SIDE WITH THIS.
 int authToParent(struct node* my_parent_info, struct node* parent_info, struct node* parent_broadcast_info) {
 	struct node_msg_generic message;
@@ -77,9 +76,6 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 	And it doesn't get to have communication spoken to it, nor does it get the session key
 	*/
 	
-	// (For my purpose only)
-	// Enable monitoring
-	//CAN_Rx(TEMP_NODE_ID,TEMP_FILTER_VAL,can_instance);
 	
 	ECCRYPTO_STATUS Status = CompressedKeyGeneration(selfData.secret_key,selfData.public_key);
 	if (Status != ECCRYPTO_SUCCESS) {
@@ -94,45 +90,24 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 		return Status;
 	}
 	photon128(selfData.shared_secret,32,selfData.shared_hash);
-	
-	//debug_print("Waiting for our time in Auth.\r\n");
+
 	// Server will request a node to send its information, this data is pretty much unnecessary
 	// Wait for it.
 	while(node_msg_check(parent_info, &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
-	//debug_print("Our turn in Auth.\r\n");
 	//We are a router, thus we handle auth differently
 	
 	// Send public key to Server
 	memcpy(message.data,selfData.public_key,FOURQ_KEY_SIZE);
-	//debug_print("Public Key: \n");
-	/*for (int sex = 0; sex < FOURQ_KEY_SIZE; sex++) {
-		printf("%x ",selfData.public_key[sex]);
-	}
-	printf("\r\n");*/
+
 	node_msg_send_generic(my_parent_info,parent_info,NODE_CMD_AUTH_PLN,&message,FOURQ_KEY_SIZE);
 	// If this auth fails, the server will not be sending anything else and we will be stuck.
 	
 	// Server will then share its encrypted hash to verify the other way around too.
 	while(node_msg_check(parent_info, &message) == 0 || message.header.cmd != NODE_CMD_AUTH_PLN);
-	/*debug_print("Enc Response: \n");
-	for (int sex = 0; sex < message.header.len-8; sex++) {
-		printf("%x ",message.data[sex]);
-	}
-	printf("\r\n");*/
+
 	crypto_aead_decrypt(response,&mlen,NULL,message.data,message.header.len-8,NULL,NULL,selfData.ASCON_data.nonce,selfData.shared_hash);
 	if (memcmp(response,parentStoredKeys->router_data.response_hash,mlen) != 0) {
 		// TODO: Find out if this PUF response matches when encrypted
-		printf("The server is not the one you want to connect to!\r\n");
-		debug_print("Expected Response: \n");
-		for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
-			printf("%x ",parentStoredKeys->router_data.response_hash[sex]);
-		}
-		printf("\r\n");
-		debug_print("Received Response: \n");
-		for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
-			printf("%x ",response[sex]);
-		}
-		printf("\r\n");
 		exit(2);
 	}
 	
@@ -147,11 +122,6 @@ int authToParent(struct node* my_parent_info, struct node* parent_info, struct n
 		exit(2);
 	}
 	memcpy(selfData.ASCON_data.session_key,response,16);
-	/*debug_print("Generated Session Key: \n");
-	for (int sex = 0; sex < RESPONSE_SIZE; sex++) {
-		printf("%x ",selfData.ASCON_data.session_key[sex]);
-	}
-	printf("\r\n");*/
 	
 	// Receive broadcast saying init is over, time for GO (because you are a router, your next step will be to do the server-side yourself)
 	while(node_msg_check(parent_broadcast_info, &message) == 0);

@@ -29,7 +29,7 @@
 #define MOTOR_DIR_PIN	PIN_PB05 // Arduino Header = D8
 #define MOTOR_EN_PIN	PIN_PB04 // Arduino Header = D7
 
-#define PWM_MOVEMENT_FACTOR		308 // pulses per mm, TODO Figure out if this is true
+#define PWM_MOVEMENT_FACTOR		308 // pulses per mm
 #define MIN_LOCATION_VALUE		0
 #define MAX_LOCATION_VALUE		150 // Can only be twice as far as the middle :)
 #define RESET_LOCATION_VALUE	0 // location in mm of where we are (meaning we can only move 10cm in either direction)
