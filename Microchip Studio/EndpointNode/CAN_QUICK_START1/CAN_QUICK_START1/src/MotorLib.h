@@ -48,12 +48,6 @@ int mot_en_get(void);
 int mot_moveLoc_get(void);
 int mot_currPos_get(void);
 
-#define XSTR(x) STR(x)
-#define STR(x) #x
-
-#pragma message "Motor: " XSTR(SYSTEM_NODE_TYPE)
-#pragma message "Motor: " XSTR(NODE_TYPE_MOTOR_T)
-
 #if SYSTEM_NODE_TYPE == 2
 	#pragma message ( "Motor" )
 dev_cap_structure cap_callback_ref = {

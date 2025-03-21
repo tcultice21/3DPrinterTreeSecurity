@@ -1553,9 +1553,9 @@ Discarded input sections
  .debug_macro   0x00000000       0xa4 src/MotorLib.o
  .debug_macro   0x00000000       0x2d src/MotorLib.o
  .debug_macro   0x00000000       0x28 src/MotorLib.o
- .debug_macro   0x00000000       0x46 src/MotorLib.o
+ .debug_macro   0x00000000       0x3a src/MotorLib.o
  .debug_line    0x00000000     0x110c src/MotorLib.o
- .debug_str     0x00000000    0x9f08d src/MotorLib.o
+ .debug_str     0x00000000    0x9f074 src/MotorLib.o
  .comment       0x00000000       0x5a src/MotorLib.o
  .debug_frame   0x00000000      0x148 src/MotorLib.o
  .ARM.attributes
@@ -8851,7 +8851,7 @@ Discarded input sections
  .debug_macro   0x00000000       0xd5 src/qs_can_basic.o
  .debug_macro   0x00000000       0x46 src/qs_can_basic.o
  .debug_macro   0x00000000       0x28 src/qs_can_basic.o
- .debug_macro   0x00000000       0x46 src/qs_can_basic.o
+ .debug_macro   0x00000000       0x3a src/qs_can_basic.o
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/arm/arm-gnu-toolchain/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v6-m\libgcc.a(_udivsi3.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/arm/arm-gnu-toolchain/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v6-m\libgcc.a(_udivsi3.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/arm/arm-gnu-toolchain/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v6-m\libgcc.a(_divsi3.o)
@@ -10654,7 +10654,7 @@ OUTPUT(CAN_QUICK_START1_FD.elf elf32-littlearm)
  .debug_line    0x0001361f      0xf78 src/Photon/photon.o
  .debug_line    0x00014597     0x1210 src/qs_can_basic.o
 
-.debug_str      0x00000000    0xa88b7
+.debug_str      0x00000000    0xa889e
  .debug_str     0x00000000     0x33b9 src/Prf_endpoint.o
                                0x3519 (size before relaxing)
  .debug_str     0x000033b9    0x9bca7 src/TreeProtocol/node.o
@@ -10715,8 +10715,8 @@ OUTPUT(CAN_QUICK_START1_FD.elf elf32-littlearm)
                                0x7429 (size before relaxing)
  .debug_str     0x000a8160      0x25b src/Photon/photon.o
                               0x9dd9f (size before relaxing)
- .debug_str     0x000a83bb      0x4fc src/qs_can_basic.o
-                              0xa2332 (size before relaxing)
+ .debug_str     0x000a83bb      0x4e3 src/qs_can_basic.o
+                              0xa2319 (size before relaxing)
 
 .debug_frame    0x00000000     0x23d0
  .debug_frame   0x00000000       0x30 src/Prf_endpoint.o

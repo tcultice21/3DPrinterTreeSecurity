@@ -21,11 +21,11 @@
 	#include "FanLib.h"
 	#include "TempLib.h"
 #elif SYSTEM_NODE_TYPE == NODE_TYPE_MOTOR_T
-	#include "MotorLib.h"
+	//#include "MotorLib.h"
 #elif SYSTEM_NODE_TYPE == NODE_TYPE_FAN_T
-	#include "FanLib.h"
+	//#include "FanLib.h"
 #elif SYSTEM_NODE_TYPE == NODE_TYPE_TSENS_T
-	#include "TempLib.h"
+	//#include "TempLib.h"
 #endif
 
 #endif /* EPPERIPHERALS_H_ */
