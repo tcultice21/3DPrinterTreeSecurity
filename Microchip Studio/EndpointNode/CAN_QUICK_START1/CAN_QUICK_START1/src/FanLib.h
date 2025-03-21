@@ -2,7 +2,7 @@
  * FanLib.h
  *
  * Created: 4/26/2023 12:52:15 AM
- *  Author: Marshmallow
+ *  Author: Tyler
  */ 
 
 #ifndef FANLIB_H_

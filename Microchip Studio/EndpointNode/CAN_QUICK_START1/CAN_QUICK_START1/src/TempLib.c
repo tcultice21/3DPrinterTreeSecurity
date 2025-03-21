@@ -2,7 +2,7 @@
  * TempLib.c
  *
  * Created: 4/25/2023 6:40:16 PM
- *  Author: Marshmallow
+ *  Author: Tyler
  */ 
 
 #include "TempLib.h"

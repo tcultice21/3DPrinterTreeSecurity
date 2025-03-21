@@ -2,7 +2,7 @@
  * MotorLib.h
  *
  * Created: 4/26/2023 1:15:44 AM
- *  Author: Marshmallow
+ *  Author: Tyler
  */ 
 
 

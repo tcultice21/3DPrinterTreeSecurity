@@ -2,7 +2,7 @@
  * MotorLib.c
  *
  * Created: 4/26/2023 1:15:25 AM
- *  Author: Marshmallow
+ *  Author: Tyler
  */ 
 
 //! [callback_funcs]

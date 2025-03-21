@@ -2,7 +2,7 @@
  * CANLib.c
  *
  * Created: 4/23/2023 12:21:53 AM
- *  Author: Marshmallow
+ *  Author: Tyler
  */ 
 #include "CANLib.h"
 

@@ -2,7 +2,7 @@
  * EncLIB.c
  *
  * Created: 4/18/2023 2:08:23 AM
- *  Author: Marshmallow
+ *  Author: Tyler
  */ 
 #include "EncLib.h"
 
