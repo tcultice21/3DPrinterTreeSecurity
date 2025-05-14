@@ -24,7 +24,6 @@
 static struct usart_module cdc_instance;
 static struct can_module can_instance;
 
-//extern dev_cap_structure cap_callback_ref;
 //! [module_inst]
 
 //! [module_var]
@@ -194,17 +193,6 @@ int main(void)
 system_init();
 configure_usart_cdc();
 
-//! [setup_init]
-//TODO: Unsure if SysTick works right now. Give me some time.
-/*SysTick->CTRL = 0;					// Disable SysTick
-SysTick->LOAD = 14400000UL-1;			// Set reload register for 1mS interrupts
-NVIC_SetPriority(SysTick_IRQn, 3);	// Set interrupt priority to least urgency
-SysTick->VAL = 0;					// Reset the SysTick counter value
-SysTick->CTRL = 0x00000007;			// Enable SysTick, Enable SysTick Exceptions, Use CPU Clock
-NVIC_EnableIRQ(SysTick_IRQn);		// Enable SysTick Interrupt*/
-
-//configure_rtc_count();
-//rtc_count_set_period(&rtc_instance, 2000);
 //! [main_setup]
 int last_num = 0;
 //! [configure_can]
@@ -235,7 +223,7 @@ node_make_parent(&parent_net,parent_info);
 network_start_listening(&parent_net,&parent_broadcast_info.haddr);
 my_parent_info = client_discover(parent_table, parent_max_nodes, &parent_num_nodes, parent_info, &parent_broadcast_info);
 for (int i = 0; i < parent_num_nodes; i++) {
-	parent_table[i].encryption_data = &selfData.ASCON_data; // or whatever
+	parent_table[i].encryption_data = &selfData.ASCON_data;
 }
 parent_broadcast_info.encryption_data = &selfData.ASCON_data;
 my_parent_info->encryption_data = &selfData.ASCON_data;
