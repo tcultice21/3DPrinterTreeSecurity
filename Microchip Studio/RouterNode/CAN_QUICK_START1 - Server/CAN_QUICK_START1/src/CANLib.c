@@ -161,8 +161,8 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
 		debug_print("Network Receive - Message: ");
-		for (int sex = 0; sex < dataLen; sex++) {
-			printf("%x ",buff[sex]);
+		for (int it = 0; it < dataLen; it++) {
+			printf("%x ",buff[it]);
 		}
 		printf("\r\n");
 		return dataLen;
@@ -175,8 +175,8 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		printf("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
 		debug_print("Broadcast Network Receive - Message: ");
-		for (int sex = 0; sex < dataLen; sex++) {
-			printf("%x ",buff[sex]);
+		for (int it = 0; it < dataLen; it++) {
+			printf("%x ",buff[it]);
 		}
 		printf("\r\n");
 		return dataLen;

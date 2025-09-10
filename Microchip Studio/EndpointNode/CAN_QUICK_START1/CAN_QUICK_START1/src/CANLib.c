@@ -124,8 +124,8 @@ int network_start_listening(struct network* network, struct network_addr* selfAd
 void network_send(struct network* network, struct network_addr* addr, uint8_t* data, size_t len) {
 	struct can_module * can_instance = network->can_instance;
 	debug_print("Network send - Message: \n");
-	for (int sex = 0; sex < len; sex++) {
-		printf("%x ",data[sex]);
+	for (int it = 0; it < len; it++) {
+		printf("%x ",data[it]);
 	}
 	printf("\r\n");
 	CAN_Tx(addr->CAN_addr,data,len,network->buff_num,can_instance);
@@ -146,8 +146,8 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		debug_print("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
 		debug_print("Network Receive - Message: \n");
-		for (int sex = 0; sex < dataLen; sex++) {
-			debug_print("%x ",buff[sex]);
+		for (int it = 0; it < dataLen; it++) {
+			debug_print("%x ",buff[it]);
 		}
 		debug_print("\r\n");
 		return dataLen;
@@ -160,8 +160,8 @@ int network_check_any(struct network* network, struct network_addr* source, uint
 		debug_print("DEBUG: DLC to Val: %d\r\n",DLC_to_Val(message->R1.bit.DLC));
 		memcpy(buff,message->data,dataLen);
 		debug_print("Broadcast Network Receive - Message: \n");
-		for (int sex = 0; sex < dataLen; sex++) {
-			printf("%x ",buff[sex]);
+		for (int it = 0; it < dataLen; it++) {
+			printf("%x ",buff[it]);
 		}
 		printf("\r\n");
 		return dataLen;
